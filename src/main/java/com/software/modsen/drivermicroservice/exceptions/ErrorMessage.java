@@ -11,4 +11,7 @@ public class ErrorMessage {
     public static final String DATA_INTEGRITY_VIOLENT_MESSAGE = "This car number, email or phone number" +
             " has already been registered.";
     public static final String JSON_MAPPING_MESSAGE = "Invalid data in JSON";
+    public static final String REQUEST_RESOURCE_NOT_FOUND_MESSAGE = "The requested resource was not found. Please" +
+            " check the URL and try again.";
+    public static final String INVALID_JSON_FORMAT = "Invalid json format.";
 }
