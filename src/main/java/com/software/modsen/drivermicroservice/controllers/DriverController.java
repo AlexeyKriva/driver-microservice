@@ -1,8 +1,5 @@
 package com.software.modsen.drivermicroservice.controllers;
 
-import com.software.modsen.drivermicroservice.entities.car.Car;
-import com.software.modsen.drivermicroservice.entities.car.CarDto;
-import com.software.modsen.drivermicroservice.entities.car.CarPatchDto;
 import com.software.modsen.drivermicroservice.entities.driver.Driver;
 import com.software.modsen.drivermicroservice.entities.driver.DriverDto;
 import com.software.modsen.drivermicroservice.entities.driver.DriverPatchDto;
