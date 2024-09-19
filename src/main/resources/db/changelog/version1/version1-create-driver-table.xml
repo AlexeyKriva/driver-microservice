@@ -1,0 +1,35 @@
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+    <changeSet id="version1-1" author="postgres">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="driver"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="driver">
+            <column name="id" type="serial">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="name" type="varchar(55)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="varchar(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="phone_number" type="varchar(20)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="sex" type="varchar(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="carId" type="bigint">
+                <constraints nullable="false" foreignKeyName="fk_driver_car" references="car(id)"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>
