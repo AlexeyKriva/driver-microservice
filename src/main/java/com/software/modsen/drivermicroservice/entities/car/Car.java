@@ -21,5 +21,5 @@ public class Car {
     @Column(name = "car_number", nullable = false)
     private String carNumber;
     @Column(name = "is_deleted", nullable = false)
-    private Boolean isDeleted;
+    private boolean isDeleted;
 }

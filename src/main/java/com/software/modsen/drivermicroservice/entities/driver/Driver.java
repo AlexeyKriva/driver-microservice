@@ -27,5 +27,5 @@ public class Driver {
     @JoinColumn(name = "car_id")
     private Car car;
     @Column(name = "is_deleted", nullable = false)
-    private Boolean isDeleted;
+    private boolean isDeleted;
 }
