@@ -23,6 +23,9 @@
             <column name="car_number" type="varchar(15)">
                 <constraints nullable="false" unique="true"/>
             </column>
+            <column name="is_deleted" type="boolean">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
     </changeSet>
 </databaseChangeLog>
