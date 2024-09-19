@@ -6,10 +6,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -31,9 +28,9 @@ public class DriverDto {
     @NotBlank(message = "Phone number cannot be blank.")
     private String phoneNumber;
     @JsonProperty("sex")
-    @NotBlank(message = "Sex cannot be blank.")
+    @NotNull(message = "Sex cannot be null.")
     private Sex sex;
     @JsonProperty("car_id")
-    @NotBlank(message = "Car id cannot be blank.")
+    @NotNull(message = "Car id cannot be null.")
     private Long carId;
 }

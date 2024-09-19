@@ -21,6 +21,7 @@ public class Driver {
     private String email;
     @Column(name = "phone_number", nullable = false)
     private String phoneNumber;
+    @Enumerated(EnumType.STRING)
     @Column(name = "sex", nullable = false)
     private Sex sex;
     @ManyToOne(fetch = FetchType.LAZY)

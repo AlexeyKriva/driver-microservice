@@ -14,8 +14,10 @@ public class Car {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+    @Enumerated(EnumType.STRING)
     @Column(name = "color", nullable = false)
     private CarColor color;
+    @Enumerated(EnumType.STRING)
     @Column(name = "brand", nullable = false)
     private CarBrand brand;
     @Column(name = "car_number", nullable = false)

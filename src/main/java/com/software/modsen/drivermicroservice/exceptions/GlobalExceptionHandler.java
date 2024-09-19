@@ -1,5 +1,7 @@
 package com.software.modsen.drivermicroservice.exceptions;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -12,8 +14,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.software.modsen.drivermicroservice.exceptions.ErrorMessage.INVALID_TYPE_FOR_PARAMETER_MESSAGE;
-import static com.software.modsen.drivermicroservice.exceptions.ErrorMessage.METHOD_NOT_SUPPORTED_MESSAGE;
+import static com.software.modsen.drivermicroservice.exceptions.ErrorMessage.*;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -61,5 +62,15 @@ public class GlobalExceptionHandler {
         });
 
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<String> dataIntegrityViolationExceptionHandler(DataIntegrityViolationException exception) {
+        return new ResponseEntity<>(DATA_INTEGRITY_VIOLENT_MESSAGE, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(JsonMappingException.class)
+    public ResponseEntity<String> jsonMappingExceptionHandler(JsonMappingException exception) {
+        return new ResponseEntity<>(JSON_MAPPING_MESSAGE, HttpStatus.BAD_REQUEST);
     }
 }

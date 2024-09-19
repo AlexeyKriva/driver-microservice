@@ -31,7 +31,7 @@ public class JpaConfig {
         entityManagerFactoryBean.setPackagesToScan("com.software.modsen.drivermicroservice.entities");
 
         Properties properties = new Properties();
-        properties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialec");
+        properties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
         properties.put("hibernate.hbm2ddl.auto", "update");
         entityManagerFactoryBean.setJpaProperties(properties);
 
