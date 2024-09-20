@@ -5,7 +5,6 @@ public class CarWasDeletedException extends RuntimeException {
         super(message);
     }
 
-    @Override
     public String getMessage() {
         return super.getMessage();
     }
