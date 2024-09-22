@@ -67,7 +67,7 @@ public class DriverService {
                     updatingDriver.setId(id);
                     updatingDriver.setCar(carFromDb.get());
 
-                    return updatingDriver;
+                    return driverRepository.save(updatingDriver);
                 }
 
                 throw new DriverWasDeletedException(DRIVER_WAS_DELETED_MESSAGE);
