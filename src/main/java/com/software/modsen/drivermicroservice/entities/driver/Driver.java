@@ -25,7 +25,7 @@ public class Driver {
     @Column(name = "sex", nullable = false)
     private Sex sex;
     @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "car_id")
+    @JoinColumn(name = "car_id", unique = true)
     private Car car;
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted;

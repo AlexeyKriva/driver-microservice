@@ -35,4 +35,8 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="version1-8" author="postgres">
+        <addUniqueConstraint tableName="driver" columnNames="car_id" constraintName="unique_car_id"/>
+    </changeSet>
+
 </databaseChangeLog>
