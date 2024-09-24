@@ -39,4 +39,27 @@
         <addUniqueConstraint tableName="driver" columnNames="car_id" constraintName="unique_car_id"/>
     </changeSet>
 
+    <changeSet id="version1-9" author="postgres">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="driver_rating"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="driver_rating">
+            <column name="id" type="serial">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="driver_id" type="bigint">
+                <constraints nullable="false" foreignKeyName="fk_driver_rating_driver" references="driver(id)"/>
+            </column>
+            <column name="rating_value" type="decimal(1,1)" defaultValue="0.0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="number_of_ratings" type="bigint" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
 </databaseChangeLog>
