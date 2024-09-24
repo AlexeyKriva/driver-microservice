@@ -57,7 +57,7 @@ public class DriverRatingService {
             return driverRatingFromDb.get();
         }
 
-        throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
+        throw new DriverNotFoundException(DRIVER_RATING_NOT_FOUND_MESSAGE);
     }
 
     public DriverRating getDriverRatingByIdAndNotDeleted(long driverId) {
