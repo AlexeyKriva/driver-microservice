@@ -86,4 +86,10 @@ public class GlobalExceptionHandler {
                                                                                  exception) {
         return new ResponseEntity<>(INVALID_JSON_FORMAT, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(DriverRatingNotFoundException.class)
+    public ResponseEntity<String> driverRatingNotFoundExceptionHandler(DriverRatingNotFoundException
+                                                                       exception) {
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_FOUND);
+    }
 }
