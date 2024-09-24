@@ -45,7 +45,7 @@ public class DriverRatingController {
         return ResponseEntity.ok(driverRatingService.putDriverRatingById(id, driverRatingPutDto));
     }
 
-    @PatchMapping
+    @PutMapping
     public ResponseEntity<DriverRating> updateDriverRating(@Valid
                                                                  @RequestBody DriverRatingDto driverRatingDto) {
         return ResponseEntity.ok(driverRatingService.updateDriverRating(driverRatingDto));
