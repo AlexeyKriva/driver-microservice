@@ -4,12 +4,15 @@ import com.software.modsen.drivermicroservice.entities.car.Car;
 import com.software.modsen.drivermicroservice.entities.driver.Driver;
 import com.software.modsen.drivermicroservice.entities.driver.DriverDto;
 import com.software.modsen.drivermicroservice.entities.driver.DriverPatchDto;
+import com.software.modsen.drivermicroservice.entities.driver.rating.DriverRatingDto;
 import com.software.modsen.drivermicroservice.exceptions.CarNotFoundException;
 import com.software.modsen.drivermicroservice.exceptions.DriverNotFoundException;
 import com.software.modsen.drivermicroservice.exceptions.DriverWasDeletedException;
 import com.software.modsen.drivermicroservice.mappers.DriverMapper;
+import com.software.modsen.drivermicroservice.observer.DriverSubject;
 import com.software.modsen.drivermicroservice.repositories.CarRepository;
 import com.software.modsen.drivermicroservice.repositories.DriverRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,11 +23,12 @@ import java.util.stream.Collectors;
 import static com.software.modsen.drivermicroservice.exceptions.ErrorMessage.*;
 
 @Service
+@AllArgsConstructor
 public class DriverService {
-    @Autowired
     private DriverRepository driverRepository;
-    @Autowired
     private CarRepository carRepository;
+    private DriverSubject driverSubject;
+
     private final DriverMapper DRIVER_MAPPER = DriverMapper.INSTANCE;
 
     public Driver getDriverById(long id) {
@@ -51,7 +55,10 @@ public class DriverService {
         if (carFromDb.isPresent()) {
             Driver newDriver = DRIVER_MAPPER.fromDriverDtoToDriver(driverDto);
             newDriver.setCar(carFromDb.get());
-            return driverRepository.save(newDriver);
+            Driver driverFromDb = driverRepository.save(newDriver);
+            driverSubject.notifyDriverObservers(new DriverRatingDto(driverFromDb.getId(), 0));
+
+            return driverFromDb;
         }
 
         throw new CarNotFoundException(CAR_NOT_FOUND_MESSAGE);

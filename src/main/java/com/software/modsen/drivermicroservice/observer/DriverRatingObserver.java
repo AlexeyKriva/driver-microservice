@@ -14,7 +14,7 @@ public class DriverRatingObserver implements DriverObserver {
     @Override
     public void saveDriverRating(DriverRatingDto driverRatingDto) {
         DriverRating newPassengerRating = Driver_RATING_MAPPER
-                .fromPassengerRatingDtoToPassengerRating(driverRatingDto);
+                .fromDriverRatingDtoToDriverRating(driverRatingDto);
         driverRatingRepository.save(newPassengerRating);
     }
 }

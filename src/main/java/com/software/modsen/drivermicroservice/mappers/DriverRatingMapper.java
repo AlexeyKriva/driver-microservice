@@ -14,21 +14,21 @@ import org.mapstruct.factory.Mappers;
 public interface DriverRatingMapper {
     DriverRatingMapper INSTANCE = Mappers.getMapper(DriverRatingMapper.class);
 
-    DriverRating fromPassengerRatingDtoToPassengerRating(DriverRatingDto driverRatingDto);
+    DriverRating fromDriverRatingDtoToDriverRating(DriverRatingDto driverRatingDto);
 
-    DriverRating fromPassengerRatingPutDtoToPassengerRating(DriverRatingPutDto driverRatingPutDto);
+    DriverRating fromDriverRatingPutDtoToDriverRating(DriverRatingPutDto driverRatingPutDto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updatePassengerRatingFromPassengerRatingPatchDto(DriverRatingPatchDto driverRatingPatchDto,
-                                                          @MappingTarget DriverRating driverRating);
+    void updateDriverRatingFromDriverRatingPatchDto(DriverRatingPatchDto driverRatingPatchDto,
+                                                    @MappingTarget DriverRating driverRating);
 
-    default void updatePassengerRatingFromPassengerRatingDto(DriverRatingDto driverRatingDto,
-                                                             @MappingTarget DriverRating driverRating) {
-        Float newPassengerRating = (driverRating.getRatingValue()
+    default void updateDriverRatingFromDriverRatingDto(DriverRatingDto driverRatingDto,
+                                                       @MappingTarget DriverRating driverRating) {
+        Float newDriverRating = (driverRating.getRatingValue()
                 * Float.valueOf(driverRating.getNumberOfRatings())
                 + Float.valueOf(driverRatingDto.getRatingValue()))
                 / (float) (driverRating.getNumberOfRatings() + 1);
-        driverRating.setRatingValue(newPassengerRating);
+        driverRating.setRatingValue(newDriverRating);
         driverRating.setNumberOfRatings(driverRating.getNumberOfRatings() + 1);
     }
 }
