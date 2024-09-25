@@ -7,7 +7,7 @@ import com.software.modsen.drivermicroservice.exceptions.CarNotFoundException;
 import com.software.modsen.drivermicroservice.exceptions.CarWasDeletedException;
 import com.software.modsen.drivermicroservice.mappers.CarMapper;
 import com.software.modsen.drivermicroservice.repositories.CarRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,13 +18,14 @@ import static com.software.modsen.drivermicroservice.exceptions.ErrorMessage.CAR
 import static com.software.modsen.drivermicroservice.exceptions.ErrorMessage.CAR_WAS_DELETED_MESSAGE;
 
 @Service
+@AllArgsConstructor
 public class CarService {
-    @Autowired
     private CarRepository carRepository;
     private final CarMapper CAR_MAPPER = CarMapper.INSTANCE;
 
     public Car getCarById(long id) {
         Optional<Car> carFromDb = carRepository.findById(id);
+
         if (carFromDb.isPresent()) {
             if (!carFromDb.get().isDeleted()) {
                 return carFromDb.get();
@@ -44,11 +45,13 @@ public class CarService {
 
     public Car saveCar(CarDto carDto) {
         Car newCar = CAR_MAPPER.fromCarDtoToCar(carDto);
+
         return carRepository.save(newCar);
     }
 
     public Car updateCar(long id, CarDto carDto) {
         Optional<Car> carFromDb = carRepository.findById(id);
+
         if (carFromDb.isPresent()) {
             if (!carFromDb.get().isDeleted()) {
                 Car updatingCar = CAR_MAPPER.fromCarDtoToCar(carDto);
@@ -65,6 +68,7 @@ public class CarService {
 
     public Car patchCar(long id, CarPatchDto carPatchDto) {
         Optional<Car> carFromDb = carRepository.findById(id);
+
         if (carFromDb.isPresent()) {
             if (!carFromDb.get().isDeleted()) {
                 Car updatingCar = carFromDb.get();

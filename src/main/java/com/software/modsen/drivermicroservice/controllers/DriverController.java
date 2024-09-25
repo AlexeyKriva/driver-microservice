@@ -5,7 +5,7 @@ import com.software.modsen.drivermicroservice.entities.driver.DriverDto;
 import com.software.modsen.drivermicroservice.entities.driver.DriverPatchDto;
 import com.software.modsen.drivermicroservice.services.DriverService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,8 +13,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = "/api/driver", produces = "application/json")
+@AllArgsConstructor
 public class DriverController {
-    @Autowired
     private DriverService driverService;
 
     @GetMapping

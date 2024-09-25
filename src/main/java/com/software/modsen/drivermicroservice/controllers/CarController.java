@@ -5,7 +5,7 @@ import com.software.modsen.drivermicroservice.entities.car.CarDto;
 import com.software.modsen.drivermicroservice.entities.car.CarPatchDto;
 import com.software.modsen.drivermicroservice.services.CarService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,8 +13,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = "/api/car", produces = "application/json")
+@AllArgsConstructor
 public class CarController {
-    @Autowired
     private CarService carService;
 
     @GetMapping

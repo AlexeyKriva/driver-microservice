@@ -9,8 +9,6 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.factory.Mappers;
 
-import java.lang.annotation.Target;
-
 @Mapper
 public interface CarMapper {
     CarMapper INSTANCE = Mappers.getMapper(CarMapper.class);

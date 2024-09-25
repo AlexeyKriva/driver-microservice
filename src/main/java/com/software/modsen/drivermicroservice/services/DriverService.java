@@ -13,7 +13,6 @@ import com.software.modsen.drivermicroservice.observer.DriverSubject;
 import com.software.modsen.drivermicroservice.repositories.CarRepository;
 import com.software.modsen.drivermicroservice.repositories.DriverRepository;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,6 +32,7 @@ public class DriverService {
 
     public Driver getDriverById(long id) {
         Optional<Driver> driverFromDb = driverRepository.findById(id);
+
         if (driverFromDb.isPresent()) {
             if (!driverFromDb.get().isDeleted()) {
                 return driverFromDb.get();
@@ -52,6 +52,7 @@ public class DriverService {
 
     public Driver saveDriver(DriverDto driverDto) {
         Optional<Car> carFromDb = carRepository.findById(driverDto.getCarId());
+
         if (carFromDb.isPresent()) {
             Driver newDriver = DRIVER_MAPPER.fromDriverDtoToDriver(driverDto);
             newDriver.setCar(carFromDb.get());
@@ -66,8 +67,10 @@ public class DriverService {
 
     public Driver updateDriver(long id, DriverDto driverDto) {
         Optional<Car> carFromDb = carRepository.findById(driverDto.getCarId());
+
         if (carFromDb.isPresent()) {
             Optional<Driver> driverFromDb = driverRepository.findById(id);
+
             if (driverFromDb.isPresent()) {
                 if (!driverFromDb.get().isDeleted()) {
                     Driver updatingDriver = DRIVER_MAPPER.fromDriverDtoToDriver(driverDto);
@@ -88,15 +91,19 @@ public class DriverService {
 
     public Driver patchDriver(long id, DriverPatchDto driverPatchDto) {
         Optional<Car> carFromDb = Optional.of(new Car());
+
         if (driverPatchDto.getCarId() != null) {
             carFromDb = carRepository.findById(driverPatchDto.getCarId());
         }
+
         if (driverPatchDto.getCarId() == null || (carFromDb.isPresent())) {
             Optional<Driver> driverFromDb = driverRepository.findById(id);
+
             if (driverFromDb.isPresent()) {
                 if (!driverFromDb.get().isDeleted()) {
                     Driver updatingDriver = driverFromDb.get();
                     DRIVER_MAPPER.updateDriverFromDriverPatchDto(driverPatchDto, updatingDriver);
+
                     if (driverPatchDto.getCarId() != null) {
                         updatingDriver.setCar(carFromDb.get());
                     }
@@ -115,6 +122,7 @@ public class DriverService {
 
     public Driver softDeleteDriverById(long id) {
         Optional<Driver> driverFromDb = driverRepository.findById(id);
+
         return driverFromDb
                 .filter(driver -> !driver.isDeleted())
                         .map(driver -> {

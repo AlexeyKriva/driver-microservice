@@ -38,6 +38,7 @@ public class DriverRatingService {
         for (DriverRating driverRatingFromDb: driverRatingsFromDb) {
             Optional<Driver> driverFromDb = driverRepository
                     .findDriverByIdAndIsDeleted(driverRatingFromDb.getDriver().getId(), false);
+
             if (driverFromDb.isPresent()) {
                 driverRatingsAndNotDeleted.add(driverRatingFromDb);
             }
@@ -53,6 +54,7 @@ public class DriverRatingService {
 
     public DriverRating getDriverRatingById(long driverId) {
         Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findByDriverId(driverId);
+
         if (driverRatingFromDb.isPresent()) {
             return driverRatingFromDb.get();
         }
@@ -63,6 +65,7 @@ public class DriverRatingService {
     public DriverRating getDriverRatingByIdAndNotDeleted(long driverId) {
         Optional<Driver> driverFromDb = driverRepository
                 .findDriverByIdAndIsDeleted(driverId, false);
+
         if (driverFromDb.isPresent()) {
             Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findByDriverId(driverId);
             return driverRatingFromDb.get();
@@ -96,12 +99,14 @@ public class DriverRatingService {
 
     public DriverRating putDriverRatingById(long id, DriverRatingPutDto driverRatingPutDto) {
         Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findById(id);
+
         if (driverRatingFromDb.isPresent()) {
             DriverRating updatingDriverRating = DRIVER_RATING_MAPPER
                     .fromDriverRatingPutDtoToDriverRating(driverRatingPutDto);
             updatingDriverRating.setId(id);
 
             Optional<Driver> driverFromDb = driverRepository.findById(driverRatingFromDb.get().getId());
+
             if (!driverFromDb.get().isDeleted()) {
                 updatingDriverRating.setDriver(driverFromDb.get());
             } else {
@@ -116,13 +121,16 @@ public class DriverRatingService {
 
     public DriverRating patchDriverRatingById(long id, DriverRatingPatchDto driverRatingPatchDto) {
         Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findById(id);
+
         if (driverRatingFromDb.isPresent()) {
             DriverRating updatingDriverRating = driverRatingFromDb.get();
             DRIVER_RATING_MAPPER.updateDriverRatingFromDriverRatingPatchDto(driverRatingPatchDto,
                     updatingDriverRating);
+
             if (driverRatingPatchDto.getDriverId() != null) {
                 Optional<Driver> driverFromDb = driverRepository
                         .findById(driverRatingPatchDto.getDriverId());
+
                 if (driverFromDb.isPresent()) {
                     if (!driverFromDb.get().isDeleted()) {
                         updatingDriverRating.setDriver(driverFromDb.get());
