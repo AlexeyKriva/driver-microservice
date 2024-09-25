@@ -13,7 +13,14 @@ import com.software.modsen.drivermicroservice.observer.DriverSubject;
 import com.software.modsen.drivermicroservice.repositories.CarRepository;
 import com.software.modsen.drivermicroservice.repositories.DriverRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -50,6 +57,8 @@ public class DriverService {
                 .collect(Collectors.toList());
     }
 
+    @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    @Transactional
     public Driver saveDriver(DriverDto driverDto) {
         Optional<Car> carFromDb = carRepository.findById(driverDto.getCarId());
 
@@ -65,6 +74,8 @@ public class DriverService {
         throw new CarNotFoundException(CAR_NOT_FOUND_MESSAGE);
     }
 
+    @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    @Transactional
     public Driver updateDriver(long id, DriverDto driverDto) {
         Optional<Car> carFromDb = carRepository.findById(driverDto.getCarId());
 
@@ -89,6 +100,8 @@ public class DriverService {
         throw new CarNotFoundException(CAR_NOT_FOUND_MESSAGE);
     }
 
+    @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    @Transactional
     public Driver patchDriver(long id, DriverPatchDto driverPatchDto) {
         Optional<Car> carFromDb = Optional.of(new Car());
 
@@ -120,6 +133,8 @@ public class DriverService {
         throw new CarNotFoundException(CAR_NOT_FOUND_MESSAGE);
     }
 
+    @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    @Transactional
     public Driver softDeleteDriverById(long id) {
         Optional<Driver> driverFromDb = driverRepository.findById(id);
 
@@ -130,5 +145,26 @@ public class DriverService {
                             return driverRepository.save(driver);
                         })
                 .orElseThrow(() -> new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE));
+    }
+
+    @Recover
+    public ResponseEntity<String> dataAccessExceptionRecoverForSaveAndPut(DataAccessException exception,
+                                                                          DriverDto driverDto) {
+        return new ResponseEntity<>(CANNOT_SAVE_DRIVER_MESSAGE + driverDto.toString(),
+                HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Recover
+    public ResponseEntity<String> dataAccessExceptionRecoverForPatch(DataAccessException exception,
+                                                                     DriverPatchDto driverPatchDto) {
+        return new ResponseEntity<>(CANNOT_PATCH_DRIVER_MESSAGE + driverPatchDto.toString(),
+                HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Recover
+    public ResponseEntity<String> dataAccessExceptionRecoverForDelete(DataAccessException exception,
+                                                                      long id) {
+        return new ResponseEntity<>(CANNOT_DELETE_DRIVER_MESSAGE + id,
+                HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

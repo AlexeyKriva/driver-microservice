@@ -12,7 +12,14 @@ import com.software.modsen.drivermicroservice.mappers.DriverRatingMapper;
 import com.software.modsen.drivermicroservice.repositories.DriverRatingRepository;
 import com.software.modsen.drivermicroservice.repositories.DriverRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,6 +81,8 @@ public class DriverRatingService {
         throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
     }
 
+    @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    @Transactional
     public DriverRating updateDriverRating(DriverRatingDto driverRatingDto) {
         Optional<Driver> driverFromDb = driverRepository.findById(driverRatingDto.getDriverId());
 
@@ -97,6 +106,8 @@ public class DriverRatingService {
         throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
     }
 
+    @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    @Transactional
     public DriverRating putDriverRatingById(long id, DriverRatingPutDto driverRatingPutDto) {
         Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findById(id);
 
@@ -119,6 +130,8 @@ public class DriverRatingService {
         throw new DriverRatingNotFoundException(DRIVER_RATING_NOT_FOUND_MESSAGE);
     }
 
+    @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    @Transactional
     public DriverRating patchDriverRatingById(long id, DriverRatingPatchDto driverRatingPatchDto) {
         Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findById(id);
 
@@ -148,6 +161,8 @@ public class DriverRatingService {
         throw new DriverRatingNotFoundException(DRIVER_RATING_NOT_FOUND_MESSAGE);
     }
 
+    @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    @Transactional
     public void deleteDriverRatingById(long id) {
         Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findById(id);
 
@@ -155,5 +170,33 @@ public class DriverRatingService {
                 driverRating -> driverRatingRepository.deleteById(id),
                 () -> {throw new DriverRatingNotFoundException(DRIVER_RATING_NOT_FOUND_MESSAGE);}
         );
+    }
+
+    @Recover
+    public ResponseEntity<String> dataAccessExceptionRecoverForUpdate(DataAccessException exception,
+                                                                      DriverRatingDto driverRatingDto) {
+        return new ResponseEntity<>(CANNOT_UPDATE_DRIVER_RATING_MESSAGE + driverRatingDto.toString(),
+                HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Recover
+    public ResponseEntity<String> dataAccessExceptionRecoverForPut(DataAccessException exception,
+                                                                   DriverRatingPutDto driverRatingPutDto) {
+        return new ResponseEntity<>(CANNOT_PUT_DRIVER_RATING_MESSAGE + driverRatingPutDto.toString(),
+                HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Recover
+    public ResponseEntity<String> dataAccessExceptionRecoverForPatch(DataAccessException exception,
+                                                                     DriverRatingPatchDto driverRatingPatchDto) {
+        return new ResponseEntity<>(CANNOT_PATCH_DRIVER_RATING_MESSAGE + driverRatingPatchDto.toString(),
+                HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Recover
+    public ResponseEntity<String> dataAccessExceptionRecoverForDelete(DataAccessException exception,
+                                                                      long id) {
+        return new ResponseEntity<>(CANNOT_DELETE_DRIVER_RATING_MESSAGE + id,
+                HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

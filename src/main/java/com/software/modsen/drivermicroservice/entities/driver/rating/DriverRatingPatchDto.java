@@ -3,10 +3,12 @@ package com.software.modsen.drivermicroservice.entities.driver.rating;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.ToString;
 import org.hibernate.validator.constraints.Range;
 
 @Getter
 @AllArgsConstructor
+@ToString
 public class DriverRatingPatchDto {
     @JsonProperty("driver_id")
     private Long driverId;
