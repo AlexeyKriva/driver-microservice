@@ -15,6 +15,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -81,6 +82,7 @@ public class DriverRatingService {
         throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
     }
 
+    @KafkaListener(topics = "driver-rating", groupId = "driver-group")
     @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     @Transactional
     public DriverRating updateDriverRating(DriverRatingDto driverRatingDto) {
