@@ -4,6 +4,17 @@ server:
 spring:
   application:
     name: driver-microservice
+  kafka:
+    consumer:
+      bootstrap-servers: localhost:9092
+      #      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      #      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      group-id: driver-ratings
+      properties:
+        string:
+          json:
+            trusted:
+              packages: com.software.modsen.drivermicroservice.entities.rating
 
 eureka:
   client:

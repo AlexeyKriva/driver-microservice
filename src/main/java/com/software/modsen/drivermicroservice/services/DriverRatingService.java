@@ -82,7 +82,7 @@ public class DriverRatingService {
         throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
     }
 
-    @KafkaListener(topics = "driver-rating", groupId = "driver-group")
+    @KafkaListener(topics = "driver-rating")
     @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     @Transactional
     public DriverRating updateDriverRating(DriverRatingDto driverRatingDto) {

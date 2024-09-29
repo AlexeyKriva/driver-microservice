@@ -2,13 +2,13 @@ package com.software.modsen.drivermicroservice.entities.driver.rating;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.validator.constraints.Range;
 
 @Getter
+@Setter
 @AllArgsConstructor
+@NoArgsConstructor
 @ToString
 public class DriverRatingDto {
     @NotNull(message = "Driver id cannot be null.")
