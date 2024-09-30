@@ -8,6 +8,7 @@ import com.software.modsen.drivermicroservice.services.DriverAccountService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,6 +42,7 @@ public class DriverAccountController {
     }
 
     @PutMapping("/{driver_id}/increase")
+    @Transactional
     public ResponseEntity<DriverAccount> increaseBalanceByDriverId(
             @PathVariable("driver_id") long driverId,
             @Valid @RequestBody DriverAccountIncreaseDto driverAccountIncreaseDto) {
