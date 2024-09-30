@@ -8,7 +8,7 @@ import org.hibernate.validator.constraints.Range;
 
 @Getter
 @AllArgsConstructor
-public class DriverAccountDto {
+public class DriverAccountIncreaseDto {
     @NotNull
     @Range(min = 5, message = "You cannot to raise your balance less than 5.")
     @JsonProperty("balance")

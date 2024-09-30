@@ -1,7 +1,8 @@
 package com.software.modsen.drivermicroservice.controllers;
 
 import com.software.modsen.drivermicroservice.entities.driver.account.DriverAccount;
-import com.software.modsen.drivermicroservice.entities.driver.account.DriverAccountDto;
+import com.software.modsen.drivermicroservice.entities.driver.account.DriverAccountCancelDto;
+import com.software.modsen.drivermicroservice.entities.driver.account.DriverAccountIncreaseDto;
 import com.software.modsen.drivermicroservice.mappers.DriverAccountMapper;
 import com.software.modsen.drivermicroservice.services.DriverAccountService;
 import jakarta.validation.Valid;
@@ -42,18 +43,18 @@ public class DriverAccountController {
     @PutMapping("/{driver_id}/increase")
     public ResponseEntity<DriverAccount> increaseBalanceByDriverId(
             @PathVariable("driver_id") long driverId,
-            @Valid @RequestBody DriverAccountDto driverAccountDto) {
+            @Valid @RequestBody DriverAccountIncreaseDto driverAccountIncreaseDto) {
         return ResponseEntity.ok(driverAccountService.increaseBalance(
                 driverId,
-                DRIVER_ACCOUNT_MAPPER.fromDriverAccountDtoToDriverAccount(driverAccountDto)));
+                DRIVER_ACCOUNT_MAPPER.fromDriverAccountIncreaseDtoToDriverAccount(driverAccountIncreaseDto)));
     }
 
     @PutMapping("/{driver_id}/cancel")
     public ResponseEntity<DriverAccount> cancelBalanceByPassengerId(
             @PathVariable("driver_id") long driverId,
-            @Valid @RequestBody DriverAccountDto driverAccountDto) {
+            @Valid @RequestBody DriverAccountCancelDto driverAccountCancelDto) {
         return ResponseEntity.ok(driverAccountService.cancelBalance(
                 driverId,
-                DRIVER_ACCOUNT_MAPPER.fromDriverAccountDtoToDriverAccount(driverAccountDto)));
+                DRIVER_ACCOUNT_MAPPER.fromDriverAccountCancelDtoToDriverAccount(driverAccountCancelDto)));
     }
 }

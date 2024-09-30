@@ -88,7 +88,7 @@ public class DriverAccountService {
                         + driverAccountFromDb.get().getBalance();
                 updatingDriverAccount.setBalance(increasingBalance);
 
-                driverAccountRepository.save(updatingDriverAccount);
+                return driverAccountRepository.save(updatingDriverAccount);
             }
 
             throw new DriverWasDeletedException(DRIVER_WAS_DELETED_MESSAGE);
@@ -115,7 +115,7 @@ public class DriverAccountService {
                 if (increasingBalance >= 0) {
                     updatingDriverAccount.setBalance(increasingBalance);
 
-                    driverAccountRepository.save(updatingDriverAccount);
+                    return driverAccountRepository.save(updatingDriverAccount);
                 } else {
                     throw new InsufficientAccountBalanceException(INSUFFICIENT_ACCOUNT_BALANCE_EXCEPTION);
                 }
