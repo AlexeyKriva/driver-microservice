@@ -62,4 +62,27 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="version1-11" author="postgres">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="driver_account"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="driver_account">
+            <column name="id" type="serial">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="driver_id" type="bigint">
+                <constraints nullable="false" foreignKeyName="fk_driver_account_driver" references="driver(id)"/>
+            </column>
+            <column name="balance" type="decimal(10,2)" defaultValue="0.00">
+                <constraints nullable="false"/>
+            </column>
+            <column name="currency" type="varchar(10)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
 </databaseChangeLog>

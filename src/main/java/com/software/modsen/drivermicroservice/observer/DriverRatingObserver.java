@@ -7,6 +7,7 @@ import com.software.modsen.drivermicroservice.mappers.DriverRatingMapper;
 import com.software.modsen.drivermicroservice.repositories.DriverRatingRepository;
 import com.software.modsen.drivermicroservice.repositories.DriverRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -14,15 +15,17 @@ import java.util.Optional;
 public class DriverRatingObserver implements DriverObserver {
     private DriverRatingRepository driverRatingRepository;
     private DriverRepository driverRepository;
-    private final DriverRatingMapper Driver_RATING_MAPPER = DriverRatingMapper.INSTANCE;
 
     @Override
-    public void saveDriverRating(DriverRatingMessage driverRatingMessage) {
-        DriverRating newDriverRating = Driver_RATING_MAPPER
-                .fromDriverRatingDtoToDriverRating(driverRatingMessage);
-        Optional<Driver> driverFromDb = driverRepository.findById(driverRatingMessage.getDriverId());
+    @Transactional
+    public void updateDriverInfo(long driverId) {
+        Optional<Driver> driverFromDb = driverRepository.findById(driverId);
+
+        DriverRating newDriverRating = new DriverRating();
+
         newDriverRating.setDriver(driverFromDb.get());
         newDriverRating.setNumberOfRatings(0);
+        newDriverRating.setRatingValue(0.0f);
 
         driverRatingRepository.save(newDriverRating);
     }

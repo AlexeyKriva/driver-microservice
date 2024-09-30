@@ -1,6 +1,6 @@
 package com.software.modsen.drivermicroservice.observer;
 
-import com.software.modsen.drivermicroservice.entities.driver.rating.DriverRatingMessage;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,9 +16,10 @@ public class DriverSubject {
         driverObservers.remove(driverObserver);
     }
 
-    public void notifyDriverObservers(DriverRatingMessage driverRatingMessage) {
+    @Transactional
+    public void notifyDriverObservers(long driverId) {
         for (DriverObserver passengerObserver: driverObservers) {
-            passengerObserver.saveDriverRating(driverRatingMessage);
+            passengerObserver.updateDriverInfo(driverId);
         }
     }
 }

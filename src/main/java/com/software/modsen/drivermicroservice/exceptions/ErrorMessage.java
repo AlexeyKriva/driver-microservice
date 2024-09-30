@@ -17,17 +17,7 @@ public class ErrorMessage {
             " check the URL and try again.";
     public static final String INVALID_JSON_FORMAT = "Invalid json format.";
 
-    public static final String CANNOT_SAVE_DRIVER_MESSAGE = "Unsuccessful attempt to save driver ";
-    public static final String CANNOT_PATCH_DRIVER_MESSAGE = "Unsuccessful attempt to patch driver ";
-    public static final String CANNOT_DELETE_DRIVER_MESSAGE = "Unsuccessful attempt to delete driver with id ";
-    public static final String CANNOT_SAVE_CAR_MESSAGE = "Unsuccessful attempt to save car ";
-    public static final String CANNOT_PATCH_CAR_MESSAGE = "Unsuccessful attempt to patch car ";
-    public static final String CANNOT_DELETE_CAR_MESSAGE = "Unsuccessful attempt to delete car with id ";
-    public static final String CANNOT_UPDATE_DRIVER_RATING_MESSAGE = "Unsuccessful attempt to update driver" +
-            " rating ";
-    public static final String CANNOT_PUT_DRIVER_RATING_MESSAGE = "Unsuccessful attempt to put driver rating ";
-    public static final String CANNOT_PATCH_DRIVER_RATING_MESSAGE = "Unsuccessful attempt to patch driver " +
-            "rating ";
-    public static final String CANNOT_DELETE_DRIVER_RATING_MESSAGE = "Unsuccessful attempt to delete driver" +
-            "rating with id ";
+    public static final String DRIVER_ACCOUNT_NOT_FOUND_MESSAGE = "Driver account not found.";
+
+    public static final String INSUFFICIENT_ACCOUNT_BALANCE_EXCEPTION = "Insufficient account balance.";
 }

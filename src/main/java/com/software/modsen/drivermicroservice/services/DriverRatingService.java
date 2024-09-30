@@ -159,15 +159,4 @@ public class DriverRatingService {
 
         throw new DriverRatingNotFoundException(DRIVER_RATING_NOT_FOUND_MESSAGE);
     }
-
-    @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
-    @Transactional
-    public void deleteDriverRatingById(long id) {
-        Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findById(id);
-
-        driverRatingFromDb.ifPresentOrElse(
-                driverRating -> driverRatingRepository.deleteById(id),
-                () -> {throw new DriverRatingNotFoundException(DRIVER_RATING_NOT_FOUND_MESSAGE);}
-        );
-    }
 }
