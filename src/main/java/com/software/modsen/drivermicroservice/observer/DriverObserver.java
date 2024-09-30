@@ -1,7 +1,7 @@
 package com.software.modsen.drivermicroservice.observer;
 
-import com.software.modsen.drivermicroservice.entities.driver.rating.DriverRatingDto;
+import com.software.modsen.drivermicroservice.entities.driver.rating.DriverRatingMessage;
 
 public interface DriverObserver {
-    void saveDriverRating(DriverRatingDto driverRatingDto);
+    void saveDriverRating(DriverRatingMessage driverRatingMessage);
 }

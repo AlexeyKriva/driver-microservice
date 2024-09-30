@@ -15,6 +15,5 @@ public interface DriverMapper {
 
     Driver fromDriverDtoToDriver(DriverDto driverDto);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateDriverFromDriverPatchDto(DriverPatchDto driverPatchDto, @MappingTarget Driver driver);
+    Driver fromDriverPatchDtoToDriver(DriverPatchDto driverPatchDto);
 }

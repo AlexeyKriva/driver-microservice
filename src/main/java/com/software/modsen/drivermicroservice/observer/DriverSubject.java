@@ -1,6 +1,6 @@
 package com.software.modsen.drivermicroservice.observer;
 
-import com.software.modsen.drivermicroservice.entities.driver.rating.DriverRatingDto;
+import com.software.modsen.drivermicroservice.entities.driver.rating.DriverRatingMessage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,9 +16,9 @@ public class DriverSubject {
         driverObservers.remove(driverObserver);
     }
 
-    public void notifyDriverObservers(DriverRatingDto driverRatingDto) {
+    public void notifyDriverObservers(DriverRatingMessage driverRatingMessage) {
         for (DriverObserver passengerObserver: driverObservers) {
-            passengerObserver.saveDriverRating(driverRatingDto);
+            passengerObserver.saveDriverRating(driverRatingMessage);
         }
     }
 }

@@ -15,6 +15,5 @@ public interface CarMapper {
 
     Car fromCarDtoToCar(CarDto carDto);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateCarFromCarPatchDto(CarPatchDto carPatchDto, @MappingTarget Car car);
+    Car fromCarPatchDtoToCar(CarPatchDto carPatchDto);
 }

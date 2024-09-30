@@ -13,9 +13,9 @@ public class DriverRatingPatchDto {
     @JsonProperty("driver_id")
     private Long driverId;
 
-    @Range(min = 1, max = 5, message = "Rating value must be between 1 and 5.")
+    @Range(min = 0, max = 5, message = "Rating value must be between 0 and 5.")
     @JsonProperty("rating_value")
-    private Integer ratingValue;
+    private Float ratingValue;
 
     @JsonProperty("number_of_ratings")
     private Integer numberOfRatings;
