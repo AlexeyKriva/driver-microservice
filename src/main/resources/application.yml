@@ -7,15 +7,8 @@ spring:
 
   kafka:
     consumer:
-      bootstrap-servers: localhost:9092
-      #      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      #      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
       group-id: driver-ratings
-      properties:
-        string:
-          json:
-            trusted:
-              packages: com.software.modsen.drivermicroservice.entities.rating
 
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/cab-aggregator-db}
