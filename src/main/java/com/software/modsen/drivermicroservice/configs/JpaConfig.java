@@ -1,7 +1,7 @@
 package com.software.modsen.drivermicroservice.configs;
 
 import jakarta.persistence.EntityManagerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -16,8 +16,8 @@ import java.util.Properties;
 
 @Configuration
 @EnableJpaRepositories("com.software.modsen.drivermicroservice.repositories")
+@AllArgsConstructor
 public class JpaConfig {
-    @Autowired
     private DataSource dataSource;
 
     @Bean

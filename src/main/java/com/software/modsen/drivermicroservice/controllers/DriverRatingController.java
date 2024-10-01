@@ -1,9 +1,9 @@
 package com.software.modsen.drivermicroservice.controllers;
 
 import com.software.modsen.drivermicroservice.entities.driver.rating.DriverRating;
-import com.software.modsen.drivermicroservice.entities.driver.rating.DriverRatingDto;
 import com.software.modsen.drivermicroservice.entities.driver.rating.DriverRatingPatchDto;
 import com.software.modsen.drivermicroservice.entities.driver.rating.DriverRatingPutDto;
+import com.software.modsen.drivermicroservice.mappers.DriverRatingMapper;
 import com.software.modsen.drivermicroservice.services.DriverRatingService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -17,6 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 public class DriverRatingController {
     private DriverRatingService driverRatingService;
+    private final DriverRatingMapper DRIVER_RATING_MAPPER = DriverRatingMapper.INSTANCE;
 
     @GetMapping
     public ResponseEntity<List<DriverRating>> getAllDriverRatings() {
@@ -24,13 +25,18 @@ public class DriverRatingController {
     }
 
     @GetMapping("/not-deleted")
-    public ResponseEntity<List<DriverRating>> getAllDriverRatingsAndNotDeleted() {
-        return ResponseEntity.ok(driverRatingService.getAllDriverRatingsAndNotDeleted());
+    public ResponseEntity<List<DriverRating>> getAllNotDeletedDriverRatings() {
+        return ResponseEntity.ok(driverRatingService.getAllNotDeletedDriverRatings());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DriverRating> getDriverRatingById(@PathVariable("id") long id) {
-        return ResponseEntity.ok(driverRatingService.getDriverRatingById(id));
+    public ResponseEntity<DriverRating> getDriverRatingById(@PathVariable("id") long driverId) {
+        return ResponseEntity.ok(driverRatingService.getDriverRatingById(driverId));
+    }
+
+    @GetMapping("/{driver_id}/by-driver")
+    public ResponseEntity<DriverRating> getDriverRatingByDriverId(@PathVariable("driver_id") long driverId) {
+        return ResponseEntity.ok(driverRatingService.getDriverRatingByDriverId(driverId));
     }
 
     @GetMapping("/{driver_id}/not-deleted")
@@ -42,25 +48,18 @@ public class DriverRatingController {
     public ResponseEntity<DriverRating> putDriverRatingById(@PathVariable("id") long id,
                                                                   @Valid @RequestBody
                                                                   DriverRatingPutDto driverRatingPutDto) {
-        return ResponseEntity.ok(driverRatingService.putDriverRatingById(id, driverRatingPutDto));
-    }
-
-    @PutMapping
-    public ResponseEntity<DriverRating> updateDriverRating(@Valid
-                                                                 @RequestBody DriverRatingDto driverRatingDto) {
-        return ResponseEntity.ok(driverRatingService.updateDriverRating(driverRatingDto));
+        return ResponseEntity.ok(driverRatingService.putDriverRatingById(
+                id,
+                DRIVER_RATING_MAPPER.fromDriverRatingPutDtoToDriverRating(driverRatingPutDto)));
     }
 
     @PatchMapping("/{id}")
     public ResponseEntity<DriverRating> patchDriverRatingById(@PathVariable("id") long id,
                                                                     @Valid @RequestBody
                                                                     DriverRatingPatchDto driverRatingPatchDto) {
-        return ResponseEntity.ok(driverRatingService.patchDriverRatingById(id, driverRatingPatchDto));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteDriverRatingById(@PathVariable("id") long id) {
-        driverRatingService.deleteDriverRatingById(id);
-        return ResponseEntity.ok("Driver rating was successfully deleted by id " + id);
+        return ResponseEntity.ok(driverRatingService.patchDriverRatingById(
+                id,
+                driverRatingPatchDto.getDriverId(),
+                DRIVER_RATING_MAPPER.fromDriverRatingPatchDtoToDriverRating(driverRatingPatchDto)));
     }
 }

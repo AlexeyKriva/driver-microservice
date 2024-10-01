@@ -9,4 +9,6 @@ import java.util.Optional;
 @Repository
 public interface DriverRepository extends JpaRepository<Driver, Long> {
     Optional<Driver> findDriverByIdAndIsDeleted(long id, boolean isDeleted);
+
+    boolean existsByIdAndIsDeleted(long id, boolean isDeleted);
 }
