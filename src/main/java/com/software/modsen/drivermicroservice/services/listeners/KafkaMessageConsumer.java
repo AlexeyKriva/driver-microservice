@@ -28,7 +28,7 @@ public class KafkaMessageConsumer {
     private DriverRatingRepository driverRatingRepository;
     private final DriverRatingMapper DRIVER_RATING_MAPPER = DriverRatingMapper.INSTANCE;
 
-    @KafkaListener(topics = "driver-rating")
+    @KafkaListener(topics = "driver-create-rating-topic", groupId = "driver-ratings")
     @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     @Transactional
     public DriverRating updateDriverRating(DriverRatingMessage driverRatingMessage) {

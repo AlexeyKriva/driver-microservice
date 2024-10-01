@@ -1,5 +1,6 @@
 package com.software.modsen.drivermicroservice.configs.kafka;
 
+import com.software.modsen.drivermicroservice.entities.driver.rating.DriverRatingMessage;
 import lombok.AllArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -26,12 +27,8 @@ public class KafkaConsumerConfig {
         Map<String, Object> kafkaConsumerProps = new HashMap<>();
         kafkaConsumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
                 environment.getProperty("spring.kafka.consumer.bootstrap-servers"));
-        kafkaConsumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
-                StringDeserializer.class);
         kafkaConsumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
                 ErrorHandlingDeserializer.class);
-        kafkaConsumerProps.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS,
-                JsonDeserializer.class);
 
         kafkaConsumerProps.put(JsonDeserializer.TRUSTED_PACKAGES,
                 "*");
@@ -42,14 +39,16 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public ConsumerFactory<String, Object> driverRatingProducerFactory() {
-        return new DefaultKafkaConsumerFactory<>(consumerFactory());
+    public ConsumerFactory<String, DriverRatingMessage> driverRatingConsumerFactory() {
+        return new DefaultKafkaConsumerFactory<>(consumerFactory(),
+                new StringDeserializer(),
+                new JsonDeserializer<>(DriverRatingMessage.class, false));
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(
-            ConsumerFactory<String, Object> driverRatingProducerFactory) {
-        ConcurrentKafkaListenerContainerFactory<String, Object> factory =
+    public ConcurrentKafkaListenerContainerFactory<String, DriverRatingMessage> kafkaListenerContainerFactory(
+            ConsumerFactory<String, DriverRatingMessage> driverRatingProducerFactory) {
+        ConcurrentKafkaListenerContainerFactory<String, DriverRatingMessage> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(driverRatingProducerFactory);
 
