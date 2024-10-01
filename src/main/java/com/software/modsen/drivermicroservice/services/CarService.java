@@ -3,7 +3,6 @@ package com.software.modsen.drivermicroservice.services;
 import com.software.modsen.drivermicroservice.entities.car.Car;
 import com.software.modsen.drivermicroservice.exceptions.CarNotFoundException;
 import com.software.modsen.drivermicroservice.exceptions.CarWasDeletedException;
-import com.software.modsen.drivermicroservice.mappers.CarMapper;
 import com.software.modsen.drivermicroservice.repositories.CarRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.dao.DataAccessException;
@@ -22,7 +21,6 @@ import static com.software.modsen.drivermicroservice.exceptions.ErrorMessage.*;
 @AllArgsConstructor
 public class CarService {
     private CarRepository carRepository;
-    private final CarMapper CAR_MAPPER = CarMapper.INSTANCE;
 
     public Car getCarById(long id) {
         Optional<Car> carFromDb = carRepository.findById(id);

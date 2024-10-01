@@ -2,15 +2,12 @@ package com.software.modsen.drivermicroservice.services;
 
 import com.software.modsen.drivermicroservice.entities.car.Car;
 import com.software.modsen.drivermicroservice.entities.driver.Driver;
-import com.software.modsen.drivermicroservice.entities.driver.account.DriverAccount;
-import com.software.modsen.drivermicroservice.entities.driver.rating.DriverRatingMessage;
 import com.software.modsen.drivermicroservice.exceptions.CarNotFoundException;
 import com.software.modsen.drivermicroservice.exceptions.CarWasDeletedException;
 import com.software.modsen.drivermicroservice.exceptions.DriverNotFoundException;
 import com.software.modsen.drivermicroservice.exceptions.DriverWasDeletedException;
 import com.software.modsen.drivermicroservice.observer.DriverSubject;
 import com.software.modsen.drivermicroservice.repositories.CarRepository;
-import com.software.modsen.drivermicroservice.repositories.DriverAccountRepository;
 import com.software.modsen.drivermicroservice.repositories.DriverRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.dao.DataAccessException;
@@ -31,7 +28,6 @@ public class DriverService {
     private DriverRepository driverRepository;
     private CarRepository carRepository;
     private DriverSubject driverSubject;
-    private DriverAccountRepository driverAccountRepository;
 
     public Driver getDriverById(long id) {
         Optional<Driver> driverFromDb = driverRepository.findById(id);

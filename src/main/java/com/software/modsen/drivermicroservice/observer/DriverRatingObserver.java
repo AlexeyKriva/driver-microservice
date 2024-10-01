@@ -2,8 +2,6 @@ package com.software.modsen.drivermicroservice.observer;
 
 import com.software.modsen.drivermicroservice.entities.driver.Driver;
 import com.software.modsen.drivermicroservice.entities.driver.rating.DriverRating;
-import com.software.modsen.drivermicroservice.entities.driver.rating.DriverRatingMessage;
-import com.software.modsen.drivermicroservice.mappers.DriverRatingMapper;
 import com.software.modsen.drivermicroservice.repositories.DriverRatingRepository;
 import com.software.modsen.drivermicroservice.repositories.DriverRepository;
 import lombok.AllArgsConstructor;

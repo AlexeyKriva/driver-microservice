@@ -5,6 +5,9 @@ import com.software.modsen.drivermicroservice.entities.driver.rating.DriverRatin
 import com.software.modsen.drivermicroservice.entities.driver.rating.DriverRatingPutDto;
 import com.software.modsen.drivermicroservice.mappers.DriverRatingMapper;
 import com.software.modsen.drivermicroservice.services.DriverRatingService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,47 +18,83 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/api/driver/rating", produces = "application/json")
 @AllArgsConstructor
+@Tag(name = "Driver rating controller.", description = "Allows to interact with driver ratings.")
 public class DriverRatingController {
     private DriverRatingService driverRatingService;
     private final DriverRatingMapper DRIVER_RATING_MAPPER = DriverRatingMapper.INSTANCE;
 
     @GetMapping
+    @Operation(
+            description = "Allows to get all driver ratings."
+    )
     public ResponseEntity<List<DriverRating>> getAllDriverRatings() {
         return ResponseEntity.ok(driverRatingService.getAllDriverRatings());
     }
 
     @GetMapping("/not-deleted")
+    @Operation(
+            description = "Allows to get all not deleted driver ratings."
+    )
     public ResponseEntity<List<DriverRating>> getAllNotDeletedDriverRatings() {
         return ResponseEntity.ok(driverRatingService.getAllNotDeletedDriverRatings());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DriverRating> getDriverRatingById(@PathVariable("id") long driverId) {
-        return ResponseEntity.ok(driverRatingService.getDriverRatingById(driverId));
+    @Operation(
+            description = "Allows to get driver rating by id."
+    )
+    public ResponseEntity<DriverRating> getDriverRatingById(@PathVariable("id")
+                                                                @Parameter(description = "Driver rating id.")
+                                                                long id) {
+        return ResponseEntity.ok(driverRatingService.getDriverRatingById(id));
     }
 
     @GetMapping("/{driver_id}/by-driver")
-    public ResponseEntity<DriverRating> getDriverRatingByDriverId(@PathVariable("driver_id") long driverId) {
+    @Operation(
+            description = "Allows to get driver rating by driver id."
+    )
+    public ResponseEntity<DriverRating> getDriverRatingByDriverId(@PathVariable("driver_id")
+                                                                      @Parameter(description = "Driver id.")
+                                                                      long driverId) {
         return ResponseEntity.ok(driverRatingService.getDriverRatingByDriverId(driverId));
     }
 
     @GetMapping("/{driver_id}/not-deleted")
-    public ResponseEntity<DriverRating> getDriverRatingByDriverIdAndNotDeleted(@PathVariable("driver_id") long id) {
-        return ResponseEntity.ok(driverRatingService.getDriverRatingByIdAndNotDeleted(id));
+    @Operation(
+            description = "Allows to get not-deleted driver rating by id."
+    )
+    public ResponseEntity<DriverRating> getDriverRatingByDriverIdAndNotDeleted(
+            @PathVariable("driver_id") @Parameter(description = "Driver id.")
+            long driverId) {
+        return ResponseEntity.ok(driverRatingService.getDriverRatingByIdAndNotDeleted(driverId));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DriverRating> putDriverRatingById(@PathVariable("id") long id,
-                                                                  @Valid @RequestBody
-                                                                  DriverRatingPutDto driverRatingPutDto) {
+    @Operation(
+            description = "Allows to update driver rating by id."
+    )
+    public ResponseEntity<DriverRating> putDriverRatingById(
+            @PathVariable("id")
+            @Parameter(description = "Driver rating id.")
+            long id,
+            @Valid
+            @RequestBody
+            @Parameter(description = "Driver rating entity")
+            DriverRatingPutDto driverRatingPutDto) {
         return ResponseEntity.ok(driverRatingService.putDriverRatingById(
                 id,
                 DRIVER_RATING_MAPPER.fromDriverRatingPutDtoToDriverRating(driverRatingPutDto)));
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<DriverRating> patchDriverRatingById(@PathVariable("id") long id,
+    @Operation(
+            description = "Allows to update driver rating by id."
+    )
+    public ResponseEntity<DriverRating> patchDriverRatingById(@PathVariable("id")
+                                                                  @Parameter(description = "Driver rating id.")
+                                                                  long id,
                                                                     @Valid @RequestBody
+                                                                    @Parameter(description = "Driver rating entity")
                                                                     DriverRatingPatchDto driverRatingPatchDto) {
         return ResponseEntity.ok(driverRatingService.patchDriverRatingById(
                 id,

@@ -12,8 +12,6 @@ import org.mapstruct.factory.Mappers;
 public interface DriverRatingMapper {
     DriverRatingMapper INSTANCE = Mappers.getMapper(DriverRatingMapper.class);
 
-    DriverRating fromDriverRatingDtoToDriverRating(DriverRatingMessage driverRatingMessage);
-
     DriverRating fromDriverRatingPutDtoToDriverRating(DriverRatingPutDto driverRatingPutDto);
 
     DriverRating fromDriverRatingPatchDtoToDriverRating(DriverRatingPatchDto driverRatingPatchDto);

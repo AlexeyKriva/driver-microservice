@@ -3,10 +3,7 @@ package com.software.modsen.drivermicroservice.mappers;
 import com.software.modsen.drivermicroservice.entities.car.Car;
 import com.software.modsen.drivermicroservice.entities.car.CarDto;
 import com.software.modsen.drivermicroservice.entities.car.CarPatchDto;
-import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
