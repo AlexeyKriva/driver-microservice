@@ -17,8 +17,8 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @EnableTransactionManagement
 @OpenAPIDefinition(
         info = @Info(
-                title = "Passenger API",
-                description = "Passenger microservice for Modsen internship",
+                title = "Driver API",
+                description = "Driver microservice for Modsen internship",
                 contact = @Contact(
                         name = "Alexey Kryvetski",
                         email = "alexey.kriva03.com@gmail.com"

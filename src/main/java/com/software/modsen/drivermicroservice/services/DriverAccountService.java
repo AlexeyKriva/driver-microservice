@@ -2,15 +2,15 @@ package com.software.modsen.drivermicroservice.services;
 
 import com.software.modsen.drivermicroservice.entities.driver.Driver;
 import com.software.modsen.drivermicroservice.entities.driver.account.DriverAccount;
-import com.software.modsen.drivermicroservice.exceptions.DriverAccountNotFoundException;
-import com.software.modsen.drivermicroservice.exceptions.DriverNotFoundException;
-import com.software.modsen.drivermicroservice.exceptions.DriverWasDeletedException;
-import com.software.modsen.drivermicroservice.exceptions.InsufficientAccountBalanceException;
+import com.software.modsen.drivermicroservice.exceptions.*;
 import com.software.modsen.drivermicroservice.repositories.DriverAccountRepository;
 import com.software.modsen.drivermicroservice.repositories.DriverRepository;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.AllArgsConstructor;
-import org.springframework.dao.DataAccessException;
+import org.postgresql.util.PSQLException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,10 +27,12 @@ public class DriverAccountService {
     private DriverAccountRepository driverAccountRepository;
     private DriverRepository driverRepository;
 
+    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public List<DriverAccount> getAllDriverAccounts() {
         return driverAccountRepository.findAll();
     }
 
+    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public List<DriverAccount> getAllNotDeletedDriverAccounts() {
         return driverAccountRepository.findAll().stream()
                 .filter(driverAccount -> driverRepository.existsByIdAndIsDeleted(
@@ -38,6 +40,7 @@ public class DriverAccountService {
                 .collect(Collectors.toList());
     }
 
+    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public DriverAccount getDriverAccountById(long id) {
         Optional<DriverAccount> driverAccountFromDb = driverAccountRepository.findById(id);
 
@@ -55,6 +58,7 @@ public class DriverAccountService {
         throw new DriverAccountNotFoundException(DRIVER_ACCOUNT_NOT_FOUND_MESSAGE);
     }
 
+    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public DriverAccount getDriverAccountByDriverId(long driverId) {
         Optional<DriverAccount> driverAccountFromDb = driverAccountRepository.findByDriverId(driverId);
 
@@ -71,7 +75,7 @@ public class DriverAccountService {
         throw new DriverAccountNotFoundException(DRIVER_ACCOUNT_NOT_FOUND_MESSAGE);
     }
 
-    @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
     public DriverAccount increaseBalance(long driverId, DriverAccount updatingDriverAccount) {
         Optional<DriverAccount> driverAccountFromDb = driverAccountRepository.findByDriverId(driverId);
@@ -97,7 +101,7 @@ public class DriverAccountService {
         throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
     }
 
-    @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
     public DriverAccount cancelBalance(long driverId, DriverAccount updatingDriverAccount) {
         Optional<DriverAccount> driverAccountFromDb = driverAccountRepository.findByDriverId(driverId);
@@ -125,5 +129,19 @@ public class DriverAccountService {
         }
 
         throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
+    }
+
+    @Recover
+    public DriverAccount fallbackPostgresHandle(Throwable throwable) {
+        if (throwable instanceof DataIntegrityViolationException) {
+            throw (DataIntegrityViolationException) throwable;
+        }
+
+        throw new DatabaseConnectionRefusedException(BAD_CONNECTION_TO_DATABASE_MESSAGE + CANNOT_UPDATE_DATA_MESSAGE);
+    }
+
+    @Recover
+    public List<DriverAccount> recoverToPSQLException(Throwable throwable) {
+        throw new DatabaseConnectionRefusedException(BAD_CONNECTION_TO_DATABASE_MESSAGE + CANNOT_GET_DATA_MESSAGE);
     }
 }

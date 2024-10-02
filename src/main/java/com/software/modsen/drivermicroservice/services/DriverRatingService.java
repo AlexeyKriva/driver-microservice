@@ -2,14 +2,18 @@ package com.software.modsen.drivermicroservice.services;
 
 import com.software.modsen.drivermicroservice.entities.driver.Driver;
 import com.software.modsen.drivermicroservice.entities.driver.rating.DriverRating;
+import com.software.modsen.drivermicroservice.exceptions.DatabaseConnectionRefusedException;
 import com.software.modsen.drivermicroservice.exceptions.DriverNotFoundException;
 import com.software.modsen.drivermicroservice.exceptions.DriverRatingNotFoundException;
 import com.software.modsen.drivermicroservice.exceptions.DriverWasDeletedException;
 import com.software.modsen.drivermicroservice.repositories.DriverRatingRepository;
 import com.software.modsen.drivermicroservice.repositories.DriverRepository;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.AllArgsConstructor;
-import org.springframework.dao.DataAccessException;
+import org.postgresql.util.PSQLException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,10 +30,12 @@ public class DriverRatingService {
     private DriverRatingRepository driverRatingRepository;
     private DriverRepository driverRepository;
 
+    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public List<DriverRating> getAllDriverRatings() {
         return driverRatingRepository.findAll();
     }
 
+    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public List<DriverRating> getAllNotDeletedDriverRatings() {
         List<DriverRating> driverRatingsFromDb = driverRatingRepository.findAll();
         List<DriverRating> driverRatingsAndNotDeleted = new ArrayList<>();
@@ -50,6 +56,7 @@ public class DriverRatingService {
         return driverRatingsAndNotDeleted;
     }
 
+    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public DriverRating getDriverRatingById(long id) {
         Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findById(id);
 
@@ -67,6 +74,7 @@ public class DriverRatingService {
         throw new DriverNotFoundException(DRIVER_RATING_NOT_FOUND_MESSAGE);
     }
 
+    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public DriverRating getDriverRatingByDriverId(long driverId) {
         Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findByDriverId(driverId);
 
@@ -84,6 +92,7 @@ public class DriverRatingService {
         throw new DriverNotFoundException(DRIVER_RATING_NOT_FOUND_MESSAGE);
     }
 
+    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public DriverRating getDriverRatingByIdAndNotDeleted(long driverId) {
         Optional<Driver> driverFromDb = driverRepository
                 .findDriverByIdAndIsDeleted(driverId, false);
@@ -96,7 +105,7 @@ public class DriverRatingService {
         throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
     }
 
-    @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
     public DriverRating putDriverRatingById(long id, DriverRating updatingDriverRating) {
         Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findById(id);
@@ -118,7 +127,7 @@ public class DriverRatingService {
         throw new DriverRatingNotFoundException(DRIVER_RATING_NOT_FOUND_MESSAGE);
     }
 
-    @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
     public DriverRating patchDriverRatingById(long id, Long driverId,
                                               DriverRating updatingDriverRating) {
@@ -158,5 +167,19 @@ public class DriverRatingService {
         }
 
         throw new DriverRatingNotFoundException(DRIVER_RATING_NOT_FOUND_MESSAGE);
+    }
+
+    @Recover
+    public DriverRating fallbackPostgresHandle(Throwable throwable) {
+        if (throwable instanceof DataIntegrityViolationException) {
+            throw (DataIntegrityViolationException) throwable;
+        }
+
+        throw new DatabaseConnectionRefusedException(BAD_CONNECTION_TO_DATABASE_MESSAGE + CANNOT_UPDATE_DATA_MESSAGE);
+    }
+
+    @Recover
+    public List<DriverRating> recoverToPSQLException(Throwable throwable) {
+        throw new DatabaseConnectionRefusedException(BAD_CONNECTION_TO_DATABASE_MESSAGE + CANNOT_GET_DATA_MESSAGE);
     }
 }

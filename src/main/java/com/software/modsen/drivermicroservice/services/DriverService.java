@@ -2,16 +2,16 @@ package com.software.modsen.drivermicroservice.services;
 
 import com.software.modsen.drivermicroservice.entities.car.Car;
 import com.software.modsen.drivermicroservice.entities.driver.Driver;
-import com.software.modsen.drivermicroservice.exceptions.CarNotFoundException;
-import com.software.modsen.drivermicroservice.exceptions.CarWasDeletedException;
-import com.software.modsen.drivermicroservice.exceptions.DriverNotFoundException;
-import com.software.modsen.drivermicroservice.exceptions.DriverWasDeletedException;
+import com.software.modsen.drivermicroservice.exceptions.*;
 import com.software.modsen.drivermicroservice.observer.DriverSubject;
 import com.software.modsen.drivermicroservice.repositories.CarRepository;
 import com.software.modsen.drivermicroservice.repositories.DriverRepository;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.AllArgsConstructor;
-import org.springframework.dao.DataAccessException;
+import org.postgresql.util.PSQLException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +29,7 @@ public class DriverService {
     private CarRepository carRepository;
     private DriverSubject driverSubject;
 
+    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public Driver getDriverById(long id) {
         Optional<Driver> driverFromDb = driverRepository.findById(id);
 
@@ -43,17 +44,19 @@ public class DriverService {
         throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
     }
 
+    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public List<Driver> getAllDrivers() {
         return driverRepository.findAll();
     }
 
+    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public List<Driver> getAllNotDeletedDrivers() {
         return driverRepository.findAll().stream()
                 .filter(driver -> !driver.isDeleted())
                 .collect(Collectors.toList());
     }
 
-    @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
     public Driver saveDriver(Long carId, Driver newDriver) {
         Optional<Car> carFromDb = carRepository.findById(carId);
@@ -70,7 +73,7 @@ public class DriverService {
         throw new CarNotFoundException(CAR_NOT_FOUND_MESSAGE);
     }
 
-    @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
     public Driver updateDriver(long id, Long carId, Driver updatingDriver) {
         Optional<Car> carFromDb = carRepository.findById(carId);
@@ -95,7 +98,7 @@ public class DriverService {
         throw new CarNotFoundException(CAR_NOT_FOUND_MESSAGE);
     }
 
-    @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
     public Driver patchDriver(long id, Long carId, Driver updatingDriver) {
         Optional<Driver> driverFromDb = driverRepository.findById(id);
@@ -144,7 +147,7 @@ public class DriverService {
         throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
     }
 
-    @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
     public Driver softDeleteDriverById(long id) {
         Optional<Driver> driverFromDb = driverRepository.findById(id);
@@ -157,7 +160,7 @@ public class DriverService {
                 .orElseThrow(() -> new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE));
     }
 
-    @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
     public Driver softRecoveryDriverById(long id) {
         Optional<Driver> driverFromDb = driverRepository.findById(id);
@@ -177,5 +180,19 @@ public class DriverService {
         }
 
         throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
+    }
+
+    @Recover
+    public Driver fallbackPostgresHandle(Throwable throwable) {
+        if (throwable instanceof DataIntegrityViolationException) {
+            throw (DataIntegrityViolationException) throwable;
+        }
+
+        throw new DatabaseConnectionRefusedException(BAD_CONNECTION_TO_DATABASE_MESSAGE + CANNOT_UPDATE_DATA_MESSAGE);
+    }
+
+    @Recover
+    public List<Driver> recoverToPSQLException(Throwable throwable) {
+        throw new DatabaseConnectionRefusedException(BAD_CONNECTION_TO_DATABASE_MESSAGE + CANNOT_GET_DATA_MESSAGE);
     }
 }

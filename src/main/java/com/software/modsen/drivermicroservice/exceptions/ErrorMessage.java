@@ -20,4 +20,10 @@ public class ErrorMessage {
     public static final String DRIVER_ACCOUNT_NOT_FOUND_MESSAGE = "Driver account not found.";
 
     public static final String INSUFFICIENT_ACCOUNT_BALANCE_EXCEPTION = "Insufficient account balance.";
+
+    public static final String BAD_CONNECTION_TO_DATABASE_MESSAGE = "Unsuccessful attempt to connect to the database. " +
+            "Please, wait and try again later.";
+
+    public static final String CANNOT_GET_DATA_MESSAGE = " For this reason you cannot get the data.";
+    public static final String CANNOT_UPDATE_DATA_MESSAGE = " For this reason you cannot update the data.";
 }

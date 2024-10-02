@@ -110,4 +110,9 @@ public class GlobalExceptionHandler {
             InsufficientAccountBalanceException exception) {
         return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(DatabaseConnectionRefusedException.class)
+    public ResponseEntity<String> pSQLExceptionHandler(DatabaseConnectionRefusedException exception) {
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

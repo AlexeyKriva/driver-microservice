@@ -3,10 +3,14 @@ package com.software.modsen.drivermicroservice.services;
 import com.software.modsen.drivermicroservice.entities.car.Car;
 import com.software.modsen.drivermicroservice.exceptions.CarNotFoundException;
 import com.software.modsen.drivermicroservice.exceptions.CarWasDeletedException;
+import com.software.modsen.drivermicroservice.exceptions.DatabaseConnectionRefusedException;
 import com.software.modsen.drivermicroservice.repositories.CarRepository;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.AllArgsConstructor;
-import org.springframework.dao.DataAccessException;
+import org.postgresql.util.PSQLException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +26,7 @@ import static com.software.modsen.drivermicroservice.exceptions.ErrorMessage.*;
 public class CarService {
     private CarRepository carRepository;
 
+    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public Car getCarById(long id) {
         Optional<Car> carFromDb = carRepository.findById(id);
 
@@ -36,23 +41,25 @@ public class CarService {
         throw new CarNotFoundException(CAR_NOT_FOUND_MESSAGE);
     }
 
+    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public List<Car> getAllCars() {
         return carRepository.findAll();
     }
 
+    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public List<Car> getAllNotDeletedCars() {
         return carRepository.findAll().stream()
                 .filter(car -> !car.isDeleted())
                 .collect(Collectors.toList());
     }
 
-    @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
     public Car saveCar(Car newCar) {
         return carRepository.save(newCar);
     }
 
-    @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
     public Car updateCar(long id, Car updatingCar) {
         Optional<Car> carFromDb = carRepository.findById(id);
@@ -70,7 +77,7 @@ public class CarService {
         throw new CarNotFoundException(CAR_NOT_FOUND_MESSAGE);
     }
 
-    @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
     public Car patchCar(long id, Car updatingCar) {
         Optional<Car> carFromDb = carRepository.findById(id);
@@ -97,7 +104,7 @@ public class CarService {
         throw new CarNotFoundException(CAR_NOT_FOUND_MESSAGE);
     }
 
-    @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
     public Car softDeleteCarById(long id) {
         Optional<Car> carFromDb = carRepository.findById(id);
@@ -110,7 +117,7 @@ public class CarService {
                 .orElseThrow(() -> new CarNotFoundException(CAR_NOT_FOUND_MESSAGE));
     }
 
-    @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
     public Car softRecoveryCarById(long id) {
         Optional<Car> carFromDb = carRepository.findById(id);
@@ -121,5 +128,19 @@ public class CarService {
                     return carRepository.save(car);
                 })
                 .orElseThrow(() -> new CarNotFoundException(CAR_NOT_FOUND_MESSAGE));
+    }
+
+    @Recover
+    public Car fallbackPostgresHandle(Throwable throwable) {
+        if (throwable instanceof DataIntegrityViolationException) {
+            throw (DataIntegrityViolationException) throwable;
+        }
+
+        throw new DatabaseConnectionRefusedException(BAD_CONNECTION_TO_DATABASE_MESSAGE + CANNOT_UPDATE_DATA_MESSAGE);
+    }
+
+    @Recover
+    public List<Car> recoverToPSQLException(Throwable throwable) {
+        throw new DatabaseConnectionRefusedException(BAD_CONNECTION_TO_DATABASE_MESSAGE + CANNOT_GET_DATA_MESSAGE);
     }
 }
