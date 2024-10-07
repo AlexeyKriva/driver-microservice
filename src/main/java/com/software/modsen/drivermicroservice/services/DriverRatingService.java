@@ -40,7 +40,7 @@ public class DriverRatingService {
         List<DriverRating> driverRatingsFromDb = driverRatingRepository.findAll();
         List<DriverRating> driverRatingsAndNotDeleted = new ArrayList<>();
 
-        for (DriverRating driverRatingFromDb: driverRatingsFromDb) {
+        for (DriverRating driverRatingFromDb : driverRatingsFromDb) {
             Optional<Driver> driverFromDb = driverRepository
                     .findDriverByIdAndIsDeleted(driverRatingFromDb.getDriver().getId(), false);
 
@@ -61,14 +61,7 @@ public class DriverRatingService {
         Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findById(id);
 
         if (driverRatingFromDb.isPresent()) {
-            Optional<Driver> driverFromDb = driverRepository.findDriverByIdAndIsDeleted(
-                    driverRatingFromDb.get().getDriver().getId(), false);
-
-            if (driverFromDb.isPresent()) {
-                return driverRatingFromDb.get();
-            }
-
-            throw new DriverWasDeletedException(DRIVER_WAS_DELETED_MESSAGE);
+            return driverRatingFromDb.get();
         }
 
         throw new DriverNotFoundException(DRIVER_RATING_NOT_FOUND_MESSAGE);
@@ -79,10 +72,7 @@ public class DriverRatingService {
         Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findByDriverId(driverId);
 
         if (driverRatingFromDb.isPresent()) {
-            Optional<Driver> driverFromDb = driverRepository.findDriverByIdAndIsDeleted(
-                    driverId, false);
-
-            if (driverFromDb.isPresent()) {
+            if (!driverRatingFromDb.get().getDriver().isDeleted()) {
                 return driverRatingFromDb.get();
             }
 
@@ -90,19 +80,6 @@ public class DriverRatingService {
         }
 
         throw new DriverNotFoundException(DRIVER_RATING_NOT_FOUND_MESSAGE);
-    }
-
-    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
-    public DriverRating getDriverRatingByIdAndNotDeleted(long driverId) {
-        Optional<Driver> driverFromDb = driverRepository
-                .findDriverByIdAndIsDeleted(driverId, false);
-
-        if (driverFromDb.isPresent()) {
-            Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findByDriverId(driverId);
-            return driverRatingFromDb.get();
-        }
-
-        throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
     }
 
     @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
@@ -113,10 +90,8 @@ public class DriverRatingService {
         if (driverRatingFromDb.isPresent()) {
             updatingDriverRating.setId(id);
 
-            Optional<Driver> driverFromDb = driverRepository.findById(driverRatingFromDb.get().getDriver().getId());
-
-            if (!driverFromDb.get().isDeleted()) {
-                updatingDriverRating.setDriver(driverFromDb.get());
+            if (!driverRatingFromDb.get().getDriver().isDeleted()) {
+                updatingDriverRating.setDriver(driverRatingFromDb.get().getDriver());
             } else {
                 throw new DriverWasDeletedException(DRIVER_WAS_DELETED_MESSAGE);
             }
@@ -129,26 +104,13 @@ public class DriverRatingService {
 
     @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
-    public DriverRating patchDriverRatingById(long id, Long driverId,
+    public DriverRating patchDriverRatingById(long id,
                                               DriverRating updatingDriverRating) {
         Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findById(id);
 
         if (driverRatingFromDb.isPresent()) {
-            Optional<Driver> driverFromDb;
-
-            if (driverId == null) {
-                driverFromDb = driverRepository.findById(
-                        driverRatingFromDb.get().getDriver().getId());
-            } else {
-                driverFromDb = driverRepository.findById(driverId);
-
-                if (driverFromDb.isEmpty()) {
-                    throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
-                }
-            }
-
-            if (!driverFromDb.get().isDeleted()) {
-                updatingDriverRating.setDriver(driverFromDb.get());
+            if (!driverRatingFromDb.get().getDriver().isDeleted()) {
+                updatingDriverRating.setDriver(driverRatingFromDb.get().getDriver());
             } else {
                 throw new DriverWasDeletedException(DRIVER_WAS_DELETED_MESSAGE);
             }

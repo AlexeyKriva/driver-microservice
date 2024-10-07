@@ -4,7 +4,6 @@ import com.software.modsen.drivermicroservice.entities.driver.Driver;
 import com.software.modsen.drivermicroservice.entities.driver.DriverDto;
 import com.software.modsen.drivermicroservice.entities.driver.DriverPatchDto;
 import com.software.modsen.drivermicroservice.mappers.DriverMapper;
-import com.software.modsen.drivermicroservice.services.DriverService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,14 +19,14 @@ import java.util.List;
 @AllArgsConstructor
 @Tag(name = "Driver controller.", description = "Allows to interact with drivers.")
 public class DriverController {
-    private DriverService driverService;
+    private com.software.modsen.drivermicroservice.services.DriverService driverService;
     private final DriverMapper DRIVER_MAPPER = DriverMapper.INSTANCE;
 
     @GetMapping
     @Operation(
             description = "Allows to get all drivers."
     )
-    public ResponseEntity<List<Driver>> getAllDriver() {
+    public ResponseEntity<List<Driver>> getAllDrivers() {
         return ResponseEntity.ok(driverService.getAllDrivers());
     }
 
@@ -35,7 +34,7 @@ public class DriverController {
     @Operation(
             description = "Allows to get all not deleted drivers."
     )
-    public ResponseEntity<List<Driver>> getAllNotDeletedDriver() {
+    public ResponseEntity<List<Driver>> getAllNotDeletedDrivers() {
         return ResponseEntity.ok(driverService.getAllNotDeletedDrivers());
     }
 
@@ -90,7 +89,7 @@ public class DriverController {
     @Operation(
             description = "Allows to soft delete driver by id."
     )
-    public ResponseEntity<Driver> softDeleteDriverByUd(@PathVariable("id") @Parameter(description = "Driver id.")
+    public ResponseEntity<Driver> softDeleteDriverById(@PathVariable("id") @Parameter(description = "Driver id.")
                                                            long id) {
         return ResponseEntity.ok(driverService.softDeleteDriverById(id));
     }
@@ -99,7 +98,7 @@ public class DriverController {
     @Operation(
             description = "Allows to soft delete driver by id."
     )
-    public ResponseEntity<Driver> softRecoveryDriverByUd(@PathVariable("id") @Parameter(description = "Driver id.")
+    public ResponseEntity<Driver> softRecoveryDriverById(@PathVariable("id") @Parameter(description = "Driver id.")
                                                              long id) {
         return ResponseEntity.ok(driverService.softRecoveryDriverById(id));
     }

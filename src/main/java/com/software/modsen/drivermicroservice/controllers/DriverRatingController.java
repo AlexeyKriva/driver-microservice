@@ -59,16 +59,6 @@ public class DriverRatingController {
         return ResponseEntity.ok(driverRatingService.getDriverRatingByDriverId(driverId));
     }
 
-    @GetMapping("/{driver_id}/not-deleted")
-    @Operation(
-            description = "Allows to get not-deleted driver rating by id."
-    )
-    public ResponseEntity<DriverRating> getDriverRatingByDriverIdAndNotDeleted(
-            @PathVariable("driver_id") @Parameter(description = "Driver id.")
-            long driverId) {
-        return ResponseEntity.ok(driverRatingService.getDriverRatingByIdAndNotDeleted(driverId));
-    }
-
     @PutMapping("/{id}")
     @Operation(
             description = "Allows to update driver rating by id."
@@ -98,7 +88,6 @@ public class DriverRatingController {
                                                                     DriverRatingPatchDto driverRatingPatchDto) {
         return ResponseEntity.ok(driverRatingService.patchDriverRatingById(
                 id,
-                driverRatingPatchDto.getDriverId(),
                 DRIVER_RATING_MAPPER.fromDriverRatingPatchDtoToDriverRating(driverRatingPatchDto)));
     }
 }

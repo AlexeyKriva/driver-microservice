@@ -76,7 +76,7 @@ public class DriverAccountController {
     @Operation(
             description = "Allows to cancel driver balance by driver id."
     )
-    public ResponseEntity<DriverAccount> cancelBalanceByPassengerId(
+    public ResponseEntity<DriverAccount> cancelBalanceByDriverId(
             @PathVariable("driver_id") @Parameter(description = "Driver id.") long driverId,
             @Valid @RequestBody @Parameter(description = "Entity to cancel driver balance.")
             DriverAccountCancelDto driverAccountCancelDto) {

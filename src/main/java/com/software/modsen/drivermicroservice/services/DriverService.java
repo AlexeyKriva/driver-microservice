@@ -34,11 +34,7 @@ public class DriverService {
         Optional<Driver> driverFromDb = driverRepository.findById(id);
 
         if (driverFromDb.isPresent()) {
-            if (!driverFromDb.get().isDeleted()) {
-                return driverFromDb.get();
-            }
-
-            throw new DriverWasDeletedException(DRIVER_WAS_DELETED_MESSAGE);
+            return driverFromDb.get();
         }
 
         throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
@@ -166,17 +162,10 @@ public class DriverService {
         Optional<Driver> driverFromDb = driverRepository.findById(id);
 
         if (driverFromDb.isPresent()) {
-            Optional<Car> carFromDb = carRepository.findCarByIdAndIsDeleted(
-                    driverFromDb.get().getCar().getId(), false);
+            Driver recoveringDriver = driverFromDb.get();
+            recoveringDriver.setDeleted(false);
 
-            if (carFromDb.isPresent()) {
-                Driver recoveringDriver = driverFromDb.get();
-                recoveringDriver.setDeleted(false);
-
-                return driverRepository.save(recoveringDriver);
-            }
-
-            throw new CarNotFoundException(CAR_NOT_FOUND_MESSAGE);
+            return driverRepository.save(recoveringDriver);
         }
 
         throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);

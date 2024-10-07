@@ -45,14 +45,7 @@ public class DriverAccountService {
         Optional<DriverAccount> driverAccountFromDb = driverAccountRepository.findById(id);
 
         if (driverAccountFromDb.isPresent()) {
-            Optional<Driver> driverFromDb = driverRepository.findById(
-                    driverAccountFromDb.get().getDriver().getId());
-
-            if (!driverFromDb.get().isDeleted()) {
                 return driverAccountFromDb.get();
-            }
-
-            throw new DriverWasDeletedException(DRIVER_WAS_DELETED_MESSAGE);
         }
 
         throw new DriverAccountNotFoundException(DRIVER_ACCOUNT_NOT_FOUND_MESSAGE);
@@ -63,9 +56,7 @@ public class DriverAccountService {
         Optional<DriverAccount> driverAccountFromDb = driverAccountRepository.findByDriverId(driverId);
 
         if (driverAccountFromDb.isPresent()) {
-            Optional<Driver> driverFromDb = driverRepository.findById(driverId);
-
-            if (!driverFromDb.get().isDeleted()) {
+            if (!driverAccountFromDb.get().getDriver().isDeleted()) {
                 return driverAccountFromDb.get();
             }
 
@@ -83,10 +74,8 @@ public class DriverAccountService {
         if (driverAccountFromDb.isPresent()) {
             updatingDriverAccount.setId(driverAccountFromDb.get().getId());
 
-            Optional<Driver> driverFromDb = driverRepository.findById(driverId);
-
-            if (!driverFromDb.get().isDeleted()) {
-                updatingDriverAccount.setDriver(driverFromDb.get());
+            if (!driverAccountFromDb.get().getDriver().isDeleted()) {
+                updatingDriverAccount.setDriver(driverAccountFromDb.get().getDriver());
 
                 Float increasingBalance = updatingDriverAccount.getBalance()
                         + driverAccountFromDb.get().getBalance();
@@ -109,10 +98,8 @@ public class DriverAccountService {
         if (driverAccountFromDb.isPresent()) {
             updatingDriverAccount.setId(driverAccountFromDb.get().getId());
 
-            Optional<Driver> driverFromDb = driverRepository.findById(driverId);
-
-            if (!driverFromDb.get().isDeleted()) {
-                updatingDriverAccount.setDriver(driverFromDb.get());
+            if (!driverAccountFromDb.get().getDriver().isDeleted()) {
+                updatingDriverAccount.setDriver(driverAccountFromDb.get().getDriver());
 
                 float increasingBalance = driverAccountFromDb.get().getBalance()
                         - updatingDriverAccount.getBalance();

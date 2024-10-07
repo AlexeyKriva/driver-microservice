@@ -81,7 +81,7 @@ public class CarController {
     @Operation(
             description = "Allows to soft delete car."
     )
-    public ResponseEntity<Car> softDeleteCarByUd(@PathVariable("id") @Parameter(description = "Car id.") long id) {
+    public ResponseEntity<Car> softDeleteCarById(@PathVariable("id") @Parameter(description = "Car id.") long id) {
         return ResponseEntity.ok(carService.softDeleteCarById(id));
     }
 
@@ -89,7 +89,7 @@ public class CarController {
     @Operation(
             description = "Allows to soft recovery car."
     )
-    public ResponseEntity<Car> softRecoveryCarByUd(@PathVariable("id") @Parameter(description = "Car id.") long id) {
+    public ResponseEntity<Car> softRecoveryCarById(@PathVariable("id") @Parameter(description = "Car id.") long id) {
         return ResponseEntity.ok(carService.softRecoveryCarById(id));
     }
 }
