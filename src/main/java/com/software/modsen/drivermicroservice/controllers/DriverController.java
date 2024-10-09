@@ -85,7 +85,7 @@ public class DriverController {
                 DRIVER_MAPPER.fromDriverPatchDtoToDriver(driverPatchDto)));
     }
 
-    @PatchMapping("/{id}/soft-delete")
+    @PostMapping("/{id}/soft-delete")
     @Operation(
             description = "Allows to soft delete driver by id."
     )
@@ -94,7 +94,7 @@ public class DriverController {
         return ResponseEntity.ok(driverService.softDeleteDriverById(id));
     }
 
-    @PatchMapping("/{id}/soft-recovery")
+    @PostMapping("/{id}/soft-recovery")
     @Operation(
             description = "Allows to soft delete driver by id."
     )

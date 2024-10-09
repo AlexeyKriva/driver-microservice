@@ -77,7 +77,7 @@ public class CarController {
         return ResponseEntity.ok(carService.patchCar(id, CAR_MAPPER.fromCarPatchDtoToCar(carPatchDto)));
     }
 
-    @PatchMapping("/{id}/soft-delete")
+    @PostMapping("/{id}/soft-delete")
     @Operation(
             description = "Allows to soft delete car."
     )
@@ -85,7 +85,7 @@ public class CarController {
         return ResponseEntity.ok(carService.softDeleteCarById(id));
     }
 
-    @PatchMapping("/{id}/soft-recovery")
+    @PostMapping("/{id}/soft-recovery")
     @Operation(
             description = "Allows to soft recovery car."
     )
