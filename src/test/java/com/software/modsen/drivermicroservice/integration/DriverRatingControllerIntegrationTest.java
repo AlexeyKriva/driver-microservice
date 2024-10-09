@@ -8,8 +8,7 @@ import com.software.modsen.drivermicroservice.entities.driver.Sex;
 import com.software.modsen.drivermicroservice.services.CarService;
 import com.software.modsen.drivermicroservice.services.DriverService;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -21,7 +20,6 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -38,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Testcontainers
-@Transactional
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class DriverRatingControllerIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
@@ -64,16 +62,22 @@ public class DriverRatingControllerIntegrationTest {
         registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
     }
 
+    static boolean isAlreadySetUped = false;
+
     @BeforeEach
     void setUp() {
-        List<Driver> drivers = defaultDrivers();
-        long carId = 1;
-        List<Car> cars = defaultCars();
-        for (Car car: cars) {
-            carService.saveCar(car);
-        }
-        for (Driver driver : drivers) {
-            driverService.saveDriver(carId++, driver);
+        if (!isAlreadySetUped) {
+            List<Driver> drivers = defaultDrivers();
+            long carId = 1;
+            List<Car> cars = defaultCars();
+            for (Car car : cars) {
+                carService.saveCar(car);
+            }
+            for (Driver driver : drivers) {
+                driverService.saveDriver(carId++, driver);
+            }
+
+            isAlreadySetUped = true;
         }
     }
 
@@ -96,12 +100,6 @@ public class DriverRatingControllerIntegrationTest {
                         .brand(CarBrand.MERCEDES_BENZ)
                         .carNumber("3333AB-3")
                         .isDeleted(true)
-                        .build(),
-                Car.builder()
-                        .color(CarColor.BLACK)
-                        .brand(CarBrand.ROLLS_ROYCE)
-                        .carNumber("3333CD-3")
-                        .isDeleted(false)
                         .build()
         );
     }
@@ -152,11 +150,11 @@ public class DriverRatingControllerIntegrationTest {
                                 .build())
                         .isDeleted(true)
                         .build()
-
         );
     }
 
     @Test
+    @Order(1)
     @SneakyThrows
     void getAllDriverRatingsTest_ReturnsDriverRatings() {
         //given
@@ -179,6 +177,7 @@ public class DriverRatingControllerIntegrationTest {
     }
 
     @Test
+    @Order(2)
     @SneakyThrows
     void getAllNotDeletedDriverRatingsTest_ReturnsValidDriverRatings() {
         //given
@@ -201,6 +200,7 @@ public class DriverRatingControllerIntegrationTest {
     }
 
     @Test
+    @Order(3)
     @SneakyThrows
     void getDriverRatingByIdTest_ReturnsDriverRating() {
         //given
@@ -221,6 +221,7 @@ public class DriverRatingControllerIntegrationTest {
     }
 
     @Test
+    @Order(4)
     @SneakyThrows
     void getDriverRatingByDriverIdTest_ReturnsPassengerRating() {
         //given
@@ -248,6 +249,7 @@ public class DriverRatingControllerIntegrationTest {
             """;
 
     @Test
+    @Order(5)
     @SneakyThrows
     void putDriverRatingByIdTest_ReturnsDriverRating() {
         //given
@@ -269,6 +271,7 @@ public class DriverRatingControllerIntegrationTest {
     }
 
     @Test
+    @Order(6)
     @SneakyThrows
     void patchDriverRatingByIdTest_ReturnsDriverRating() {
         //given

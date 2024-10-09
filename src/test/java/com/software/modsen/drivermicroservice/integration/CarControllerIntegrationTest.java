@@ -5,8 +5,7 @@ import com.software.modsen.drivermicroservice.entities.car.CarBrand;
 import com.software.modsen.drivermicroservice.entities.car.CarColor;
 import com.software.modsen.drivermicroservice.services.CarService;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -18,7 +17,6 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -36,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @Testcontainers
-@Transactional
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class CarControllerIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
@@ -59,11 +57,17 @@ public class CarControllerIntegrationTest {
         registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
     }
 
+    static boolean isAlreadySetUped = false;
+
     @BeforeEach
     void setUp() {
-        List<Car> cars = defaultCars();
-        for (Car car : cars) {
-            carService.saveCar(car);
+        if (!isAlreadySetUped) {
+            List<Car> cars = defaultCars();
+            for (Car car : cars) {
+                carService.saveCar(car);
+            }
+
+            isAlreadySetUped = true;
         }
     }
 
@@ -86,11 +90,18 @@ public class CarControllerIntegrationTest {
                         .brand(CarBrand.MERCEDES_BENZ)
                         .carNumber("3333AB-3")
                         .isDeleted(true)
+                        .build(),
+                Car.builder()
+                        .color(CarColor.WHITE)
+                        .brand(CarBrand.VOLKSWAGEN)
+                        .carNumber("3333TY-3")
+                        .isDeleted(false)
                         .build()
         );
     }
 
     @Test
+    @Order(1)
     @SneakyThrows
     void getAllCarsTest_ReturnsCars() {
         //given
@@ -112,11 +123,15 @@ public class CarControllerIntegrationTest {
                 () -> assertTrue(responseContent.contains("7890AB-7")),
                 () -> assertTrue(responseContent.contains("GREEN")),
                 () -> assertTrue(responseContent.contains("MERCEDES_BENZ")),
-                () -> assertTrue(responseContent.contains("3333AB-3"))
+                () -> assertTrue(responseContent.contains("3333AB-3")),
+                () -> assertTrue(responseContent.contains("WHITE")),
+                () -> assertTrue(responseContent.contains("VOLKSWAGEN")),
+                () -> assertTrue(responseContent.contains("3333TY-3"))
         );
     }
 
     @Test
+    @Order(2)
     @SneakyThrows
     void getAllNotDeletedCarsTest_ReturnsValidCars() {
         //given
@@ -138,11 +153,15 @@ public class CarControllerIntegrationTest {
                 () -> assertTrue(responseContent.contains("7890AB-7")),
                 () -> assertFalse(responseContent.contains("GREEN")),
                 () -> assertFalse(responseContent.contains("MERCEDES_BENZ")),
-                () -> assertFalse(responseContent.contains("3333AB-3"))
+                () -> assertFalse(responseContent.contains("3333AB-3")),
+                () -> assertTrue(responseContent.contains("WHITE")),
+                () -> assertTrue(responseContent.contains("VOLKSWAGEN")),
+                () -> assertTrue(responseContent.contains("3333TY-3"))
         );
     }
 
     @Test
+    @Order(3)
     @SneakyThrows
     void getCarByIdTest_ReturnsCar() {
         //given
@@ -172,6 +191,7 @@ public class CarControllerIntegrationTest {
             """;
 
     @Test
+    @Order(4)
     @SneakyThrows
     void saveCarTest_ReturnsCar() {
         //given
@@ -186,7 +206,7 @@ public class CarControllerIntegrationTest {
 
         //then
         assertAll("Check response content",
-                () -> assertTrue(responseContent.contains("4")),
+                () -> assertTrue(responseContent.contains("5")),
                 () -> assertTrue(responseContent.contains("YELLOW")),
                 () -> assertTrue(responseContent.contains("BMW")),
                 () -> assertTrue(responseContent.contains("A123AB-3")),
@@ -194,13 +214,22 @@ public class CarControllerIntegrationTest {
         );
     }
 
+    private final String carUpdateDto = """
+                {
+                    "color": "RED",
+                    "brand": "LAMBORGHINI",
+                    "car_number": "3123AB-3"
+                }
+            """;
+
     @Test
+    @Order(5)
     @SneakyThrows
     void updateCarByIdTest_ReturnsCar() {
         //given
         MvcResult mvcResult = mockMvc.perform(put("/api/car/2")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(carDto))
+                        .content(carUpdateDto))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -210,49 +239,28 @@ public class CarControllerIntegrationTest {
         //then
         assertAll("Check response content",
                 () -> assertTrue(responseContent.contains("2")),
-                () -> assertTrue(responseContent.contains("YELLOW")),
-                () -> assertTrue(responseContent.contains("BMW")),
-                () -> assertTrue(responseContent.contains("A123AB-3")),
+                () -> assertTrue(responseContent.contains("RED")),
+                () -> assertTrue(responseContent.contains("LAMBORGHINI")),
+                () -> assertTrue(responseContent.contains("3123AB-3")),
                 () -> assertTrue(responseContent.contains("false"))
         );
     }
 
     private final String carPatchDto = """
                 {
-                    "color": "YELLOW",
-                    "brand": "BMW"
+                    "color": "LIGHT_BLUE",
+                    "brand": "LEXUS"
                 }
             """;
 
     @Test
+    @Order(6)
     @SneakyThrows
     void patchCarByIdTest_ReturnsCar() {
         //given
-        MvcResult mvcResult = mockMvc.perform(patch("/api/car/2")
+        MvcResult mvcResult = mockMvc.perform(patch("/api/car/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(carPatchDto))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        //when
-        String responseContent = mvcResult.getResponse().getContentAsString();
-
-        //then
-        assertAll("Check response content",
-                () -> assertTrue(responseContent.contains("2")),
-                () -> assertTrue(responseContent.contains("YELLOW")),
-                () -> assertTrue(responseContent.contains("BMW")),
-                () -> assertTrue(responseContent.contains("7890AB-7")),
-                () -> assertTrue(responseContent.contains("false"))
-        );
-    }
-
-    @Test
-    @SneakyThrows
-    void softDeleteCarByIdTest_ReturnsCar() {
-        //given
-        MvcResult mvcResult = mockMvc.perform(post("/api/car/1/soft-delete")
-                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -262,20 +270,43 @@ public class CarControllerIntegrationTest {
         //then
         assertAll("Check response content",
                 () -> assertTrue(responseContent.contains("1")),
-                () -> assertTrue(responseContent.contains("BLUE")),
-                () -> assertTrue(responseContent.contains("AUDI")),
+                () -> assertTrue(responseContent.contains("LIGHT_BLUE")),
+                () -> assertTrue(responseContent.contains("LEXUS")),
                 () -> assertTrue(responseContent.contains("1234AB-1")),
+                () -> assertTrue(responseContent.contains("false"))
+        );
+    }
+
+    @Test
+    @Order(7)
+    @SneakyThrows
+    void softDeleteCarByIdTest_ReturnsCar() {
+        //given
+        MvcResult mvcResult = mockMvc.perform(post("/api/car/4/soft-delete")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        //when
+        String responseContent = mvcResult.getResponse().getContentAsString();
+
+        //then
+        assertAll("Check response content",
+                () -> assertTrue(responseContent.contains("4")),
+                () -> assertTrue(responseContent.contains("WHITE")),
+                () -> assertTrue(responseContent.contains("VOLKSWAGEN")),
+                () -> assertTrue(responseContent.contains("3333TY-3")),
                 () -> assertTrue(responseContent.contains("true"))
         );
     }
 
     @Test
+    @Order(8)
     @SneakyThrows
     void softRecoveryCarByIdTest_ReturnsCar() {
         //given
         MvcResult mvcResult = mockMvc.perform(post("/api/car/3/soft-recovery")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(carPatchDto))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 

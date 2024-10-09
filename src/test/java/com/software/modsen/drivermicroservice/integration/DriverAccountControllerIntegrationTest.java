@@ -9,7 +9,9 @@ import com.software.modsen.drivermicroservice.services.CarService;
 import com.software.modsen.drivermicroservice.services.DriverService;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -39,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @Testcontainers
-@Transactional
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class DriverAccountControllerIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
@@ -65,16 +67,22 @@ public class DriverAccountControllerIntegrationTest {
         registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
     }
 
+    static boolean isAlreadySetUped = false;
+
     @BeforeEach
     void setUp() {
-        List<Driver> drivers = defaultDrivers();
-        long carId = 1;
-        List<Car> cars = defaultCars();
-        for (Car car: cars) {
-            carService.saveCar(car);
-        }
-        for (Driver driver : drivers) {
-            driverService.saveDriver(carId++, driver);
+        if (!isAlreadySetUped) {
+            List<Driver> drivers = defaultDrivers();
+            long carId = 1;
+            List<Car> cars = defaultCars();
+            for (Car car : cars) {
+                carService.saveCar(car);
+            }
+            for (Driver driver : drivers) {
+                driverService.saveDriver(carId++, driver);
+            }
+
+            isAlreadySetUped = true;
         }
     }
 
@@ -97,12 +105,6 @@ public class DriverAccountControllerIntegrationTest {
                         .brand(CarBrand.MERCEDES_BENZ)
                         .carNumber("3333AB-3")
                         .isDeleted(true)
-                        .build(),
-                Car.builder()
-                        .color(CarColor.BLACK)
-                        .brand(CarBrand.ROLLS_ROYCE)
-                        .carNumber("3333CD-3")
-                        .isDeleted(false)
                         .build()
         );
     }
@@ -153,7 +155,6 @@ public class DriverAccountControllerIntegrationTest {
                                 .build())
                         .isDeleted(true)
                         .build()
-
         );
     }
 
@@ -279,11 +280,11 @@ public class DriverAccountControllerIntegrationTest {
     @SneakyThrows
     void cancelBalanceByPassengerIdTest_ReturnsPassengerAccount() {
         //given
-        mockMvc.perform(put("/api/driver/account/1/increase")
+        mockMvc.perform(put("/api/driver/account/2/increase")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(passengerAccountIncreaseDto));
 
-        MvcResult mvcResult = mockMvc.perform(put("/api/driver/account/1/cancel")
+        MvcResult mvcResult = mockMvc.perform(put("/api/driver/account/2/cancel")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(passengerAccountCancelDto))
                 .andExpect(status().isOk())
@@ -294,7 +295,7 @@ public class DriverAccountControllerIntegrationTest {
 
         //then
         assertAll("Check response content",
-                () -> assertTrue(responseContent.contains("Vlad")),
+                () -> assertTrue(responseContent.contains("Kirill")),
                 () -> assertTrue(responseContent.contains("200.0")),
                 () -> assertTrue(responseContent.contains("BYN"))
         );
