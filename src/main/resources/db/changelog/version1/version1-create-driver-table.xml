@@ -39,7 +39,7 @@
         <addUniqueConstraint tableName="driver" columnNames="car_id" constraintName="unique_car_id"/>
     </changeSet>
 
-    <changeSet id="version1-8" author="postgres">
+    <changeSet id="version1-7" author="postgres">
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists tableName="driver_rating"/>
