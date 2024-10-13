@@ -8,6 +8,7 @@ import com.software.modsen.drivermicroservice.entities.driver.DriverDto;
 import com.software.modsen.drivermicroservice.entities.driver.DriverPatchDto;
 import com.software.modsen.drivermicroservice.entities.driver.Sex;
 import com.software.modsen.drivermicroservice.mappers.DriverMapper;
+import com.software.modsen.drivermicroservice.services.DriverService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,7 +28,7 @@ import static org.mockito.Mockito.doReturn;
 @ExtendWith(MockitoExtension.class)
 public class DriverControllerTest {
     @Mock
-    com.software.modsen.drivermicroservice.services.DriverService driverService;
+    DriverService driverService;
 
     @Mock
     DriverMapper driverMapper;
