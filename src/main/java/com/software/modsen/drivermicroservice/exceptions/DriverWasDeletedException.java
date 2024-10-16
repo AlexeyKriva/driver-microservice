@@ -4,8 +4,4 @@ public class DriverWasDeletedException extends RuntimeException {
     public DriverWasDeletedException(String message) {
         super(message);
     }
-
-    public String getMessage() {
-        return super.getMessage();
-    }
 }

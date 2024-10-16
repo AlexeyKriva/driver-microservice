@@ -2,19 +2,19 @@ package com.software.modsen.drivermicroservice.services;
 
 import com.software.modsen.drivermicroservice.entities.car.Car;
 import com.software.modsen.drivermicroservice.entities.driver.Driver;
-import com.software.modsen.drivermicroservice.entities.driver.DriverDto;
-import com.software.modsen.drivermicroservice.entities.driver.DriverPatchDto;
-import com.software.modsen.drivermicroservice.entities.driver.rating.DriverRatingDto;
-import com.software.modsen.drivermicroservice.exceptions.CarNotFoundException;
-import com.software.modsen.drivermicroservice.exceptions.DriverNotFoundException;
-import com.software.modsen.drivermicroservice.exceptions.DriverWasDeletedException;
-import com.software.modsen.drivermicroservice.mappers.DriverMapper;
+import com.software.modsen.drivermicroservice.exceptions.*;
 import com.software.modsen.drivermicroservice.observer.DriverSubject;
 import com.software.modsen.drivermicroservice.repositories.CarRepository;
 import com.software.modsen.drivermicroservice.repositories.DriverRepository;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.postgresql.util.PSQLException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,34 +29,39 @@ public class DriverService {
     private CarRepository carRepository;
     private DriverSubject driverSubject;
 
-    private final DriverMapper DRIVER_MAPPER = DriverMapper.INSTANCE;
-
+    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public Driver getDriverById(long id) {
         Optional<Driver> driverFromDb = driverRepository.findById(id);
-        if (driverFromDb.isPresent()) {
-            if (!driverFromDb.get().isDeleted()) {
-                return driverFromDb.get();
-            }
 
-            throw new DriverWasDeletedException(DRIVER_WAS_DELETED_MESSAGE);
+        if (driverFromDb.isPresent()) {
+            return driverFromDb.get();
         }
 
         throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
     }
 
+    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public List<Driver> getAllDrivers() {
+        return driverRepository.findAll();
+    }
+
+    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    public List<Driver> getAllNotDeletedDrivers() {
         return driverRepository.findAll().stream()
                 .filter(driver -> !driver.isDeleted())
                 .collect(Collectors.toList());
     }
 
-    public Driver saveDriver(DriverDto driverDto) {
-        Optional<Car> carFromDb = carRepository.findById(driverDto.getCarId());
+    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
+    @Transactional
+    public Driver saveDriver(Long carId, Driver newDriver) {
+        Optional<Car> carFromDb = carRepository.findById(carId);
+
         if (carFromDb.isPresent()) {
-            Driver newDriver = DRIVER_MAPPER.fromDriverDtoToDriver(driverDto);
             newDriver.setCar(carFromDb.get());
             Driver driverFromDb = driverRepository.save(newDriver);
-            driverSubject.notifyDriverObservers(new DriverRatingDto(driverFromDb.getId(), 0));
+
+            driverSubject.notifyDriverObservers(driverFromDb.getId());
 
             return driverFromDb;
         }
@@ -64,13 +69,16 @@ public class DriverService {
         throw new CarNotFoundException(CAR_NOT_FOUND_MESSAGE);
     }
 
-    public Driver updateDriver(long id, DriverDto driverDto) {
-        Optional<Car> carFromDb = carRepository.findById(driverDto.getCarId());
+    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
+    @Transactional
+    public Driver updateDriver(long id, Long carId, Driver updatingDriver) {
+        Optional<Car> carFromDb = carRepository.findById(carId);
+
         if (carFromDb.isPresent()) {
             Optional<Driver> driverFromDb = driverRepository.findById(id);
+
             if (driverFromDb.isPresent()) {
                 if (!driverFromDb.get().isDeleted()) {
-                    Driver updatingDriver = DRIVER_MAPPER.fromDriverDtoToDriver(driverDto);
                     updatingDriver.setId(id);
                     updatingDriver.setCar(carFromDb.get());
 
@@ -86,41 +94,94 @@ public class DriverService {
         throw new CarNotFoundException(CAR_NOT_FOUND_MESSAGE);
     }
 
-    public Driver patchDriver(long id, DriverPatchDto driverPatchDto) {
-        Optional<Car> carFromDb = Optional.of(new Car());
-        if (driverPatchDto.getCarId() != null) {
-            carFromDb = carRepository.findById(driverPatchDto.getCarId());
-        }
-        if (driverPatchDto.getCarId() == null || (carFromDb.isPresent())) {
-            Optional<Driver> driverFromDb = driverRepository.findById(id);
-            if (driverFromDb.isPresent()) {
-                if (!driverFromDb.get().isDeleted()) {
-                    Driver updatingDriver = driverFromDb.get();
-                    DRIVER_MAPPER.updateDriverFromDriverPatchDto(driverPatchDto, updatingDriver);
-                    if (driverPatchDto.getCarId() != null) {
-                        updatingDriver.setCar(carFromDb.get());
-                    }
+    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
+    @Transactional
+    public Driver patchDriver(long id, Long carId, Driver updatingDriver) {
+        Optional<Driver> driverFromDb = driverRepository.findById(id);
 
-                    return driverRepository.save(updatingDriver);
+        if (driverFromDb.isPresent()) {
+            if (!driverFromDb.get().isDeleted()) {
+                Optional<Car> carFromDb;
+                if (carId == null) {
+                    carFromDb = carRepository.findById(
+                            driverFromDb.get().getCar().getId());
+                } else {
+                    carFromDb = carRepository.findById(carId);
+
+                    if (carFromDb.isEmpty()) {
+                        throw new CarNotFoundException(CAR_NOT_FOUND_MESSAGE);
+                    }
                 }
 
-                throw new DriverWasDeletedException(DRIVER_WAS_DELETED_MESSAGE);
+                if (!carFromDb.get().isDeleted()) {
+                    updatingDriver.setCar(carFromDb.get());
+                } else {
+                    throw new CarWasDeletedException(CAR_WAS_DELETED_MESSAGE);
+                }
+
+                if (updatingDriver.getName() == null) {
+                    updatingDriver.setName(driverFromDb.get().getName());
+                }
+                if (updatingDriver.getEmail() == null) {
+                    updatingDriver.setEmail(driverFromDb.get().getEmail());
+                }
+                if (updatingDriver.getPhoneNumber() == null) {
+                    updatingDriver.setPhoneNumber(driverFromDb.get().getPhoneNumber());
+                }
+                if (updatingDriver.getSex() == null) {
+                    updatingDriver.setSex(driverFromDb.get().getSex());
+                }
+
+                updatingDriver.setId(id);
+
+                return driverRepository.save(updatingDriver);
             }
 
-            throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
+            throw new DriverWasDeletedException(DRIVER_WAS_DELETED_MESSAGE);
         }
 
-        throw new CarNotFoundException(CAR_NOT_FOUND_MESSAGE);
+        throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
     }
 
+    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
+    @Transactional
     public Driver softDeleteDriverById(long id) {
         Optional<Driver> driverFromDb = driverRepository.findById(id);
+
         return driverFromDb
-                .filter(driver -> !driver.isDeleted())
-                        .map(driver -> {
-                            driver.setDeleted(true);
-                            return driverRepository.save(driver);
-                        })
+                .map(driver -> {
+                    driver.setDeleted(true);
+                    return driverRepository.save(driver);
+                })
                 .orElseThrow(() -> new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE));
+    }
+
+    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
+    @Transactional
+    public Driver softRecoveryDriverById(long id) {
+        Optional<Driver> driverFromDb = driverRepository.findById(id);
+
+        if (driverFromDb.isPresent()) {
+            Driver recoveringDriver = driverFromDb.get();
+            recoveringDriver.setDeleted(false);
+
+            return driverRepository.save(recoveringDriver);
+        }
+
+        throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
+    }
+
+    @Recover
+    public Driver fallbackPostgresHandle(Throwable throwable) {
+        if (throwable instanceof DataIntegrityViolationException) {
+            throw (DataIntegrityViolationException) throwable;
+        }
+
+        throw new DatabaseConnectionRefusedException(BAD_CONNECTION_TO_DATABASE_MESSAGE + CANNOT_UPDATE_DATA_MESSAGE);
+    }
+
+    @Recover
+    public List<Driver> recoverToPSQLException(Throwable throwable) {
+        throw new DatabaseConnectionRefusedException(BAD_CONNECTION_TO_DATABASE_MESSAGE + CANNOT_GET_DATA_MESSAGE);
     }
 }

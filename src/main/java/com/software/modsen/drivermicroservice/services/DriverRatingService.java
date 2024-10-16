@@ -2,17 +2,21 @@ package com.software.modsen.drivermicroservice.services;
 
 import com.software.modsen.drivermicroservice.entities.driver.Driver;
 import com.software.modsen.drivermicroservice.entities.driver.rating.DriverRating;
-import com.software.modsen.drivermicroservice.entities.driver.rating.DriverRatingDto;
-import com.software.modsen.drivermicroservice.entities.driver.rating.DriverRatingPatchDto;
-import com.software.modsen.drivermicroservice.entities.driver.rating.DriverRatingPutDto;
+import com.software.modsen.drivermicroservice.exceptions.DatabaseConnectionRefusedException;
 import com.software.modsen.drivermicroservice.exceptions.DriverNotFoundException;
 import com.software.modsen.drivermicroservice.exceptions.DriverRatingNotFoundException;
 import com.software.modsen.drivermicroservice.exceptions.DriverWasDeletedException;
-import com.software.modsen.drivermicroservice.mappers.DriverRatingMapper;
 import com.software.modsen.drivermicroservice.repositories.DriverRatingRepository;
 import com.software.modsen.drivermicroservice.repositories.DriverRepository;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.AllArgsConstructor;
+import org.postgresql.util.PSQLException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,19 +29,21 @@ import static com.software.modsen.drivermicroservice.exceptions.ErrorMessage.*;
 public class DriverRatingService {
     private DriverRatingRepository driverRatingRepository;
     private DriverRepository driverRepository;
-    private final DriverRatingMapper DRIVER_RATING_MAPPER = DriverRatingMapper.INSTANCE;
 
+    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public List<DriverRating> getAllDriverRatings() {
         return driverRatingRepository.findAll();
     }
 
-    public List<DriverRating> getAllDriverRatingsAndNotDeleted() {
+    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    public List<DriverRating> getAllNotDeletedDriverRatings() {
         List<DriverRating> driverRatingsFromDb = driverRatingRepository.findAll();
         List<DriverRating> driverRatingsAndNotDeleted = new ArrayList<>();
 
-        for (DriverRating driverRatingFromDb: driverRatingsFromDb) {
+        for (DriverRating driverRatingFromDb : driverRatingsFromDb) {
             Optional<Driver> driverFromDb = driverRepository
                     .findDriverByIdAndIsDeleted(driverRatingFromDb.getDriver().getId(), false);
+
             if (driverFromDb.isPresent()) {
                 driverRatingsAndNotDeleted.add(driverRatingFromDb);
             }
@@ -50,9 +56,10 @@ public class DriverRatingService {
         return driverRatingsAndNotDeleted;
     }
 
+    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    public DriverRating getDriverRatingById(long id) {
+        Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findById(id);
 
-    public DriverRating getDriverRatingById(long driverId) {
-        Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findByDriverId(driverId);
         if (driverRatingFromDb.isPresent()) {
             return driverRatingFromDb.get();
         }
@@ -60,50 +67,31 @@ public class DriverRatingService {
         throw new DriverNotFoundException(DRIVER_RATING_NOT_FOUND_MESSAGE);
     }
 
-    public DriverRating getDriverRatingByIdAndNotDeleted(long driverId) {
-        Optional<Driver> driverFromDb = driverRepository
-                .findDriverByIdAndIsDeleted(driverId, false);
-        if (driverFromDb.isPresent()) {
-            Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findByDriverId(driverId);
-            return driverRatingFromDb.get();
-        }
+    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    public DriverRating getDriverRatingByDriverId(long driverId) {
+        Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findByDriverId(driverId);
 
-        throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
-    }
-
-    public DriverRating updateDriverRating(DriverRatingDto driverRatingDto) {
-        Optional<Driver> driverFromDb = driverRepository.findById(driverRatingDto.getDriverId());
-
-        if (driverFromDb.isPresent()) {
-            if (!driverFromDb.get().isDeleted()) {
-                Optional<DriverRating> driverRatingFromDb = driverRatingRepository
-                        .findByDriverId(driverRatingDto.getDriverId());
-
-                if (driverRatingFromDb.isPresent()) {
-                    DriverRating updatingDriverRating = driverRatingFromDb.get();
-                    DRIVER_RATING_MAPPER
-                            .updateDriverRatingFromDriverRatingDto(driverRatingDto, updatingDriverRating);
-
-                    return driverRatingRepository.save(updatingDriverRating);
-                }
+        if (driverRatingFromDb.isPresent()) {
+            if (!driverRatingFromDb.get().getDriver().isDeleted()) {
+                return driverRatingFromDb.get();
             }
 
             throw new DriverWasDeletedException(DRIVER_WAS_DELETED_MESSAGE);
         }
 
-        throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
+        throw new DriverNotFoundException(DRIVER_RATING_NOT_FOUND_MESSAGE);
     }
 
-    public DriverRating putDriverRatingById(long id, DriverRatingPutDto driverRatingPutDto) {
+    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
+    @Transactional
+    public DriverRating putDriverRatingById(long id, DriverRating updatingDriverRating) {
         Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findById(id);
+
         if (driverRatingFromDb.isPresent()) {
-            DriverRating updatingDriverRating = DRIVER_RATING_MAPPER
-                    .fromDriverRatingPutDtoToDriverRating(driverRatingPutDto);
             updatingDriverRating.setId(id);
 
-            Optional<Driver> driverFromDb = driverRepository.findById(driverRatingFromDb.get().getId());
-            if (!driverFromDb.get().isDeleted()) {
-                updatingDriverRating.setDriver(driverFromDb.get());
+            if (!driverRatingFromDb.get().getDriver().isDeleted()) {
+                updatingDriverRating.setDriver(driverRatingFromDb.get().getDriver());
             } else {
                 throw new DriverWasDeletedException(DRIVER_WAS_DELETED_MESSAGE);
             }
@@ -114,25 +102,28 @@ public class DriverRatingService {
         throw new DriverRatingNotFoundException(DRIVER_RATING_NOT_FOUND_MESSAGE);
     }
 
-    public DriverRating patchDriverRatingById(long id, DriverRatingPatchDto driverRatingPatchDto) {
+    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
+    @Transactional
+    public DriverRating patchDriverRatingById(long id,
+                                              DriverRating updatingDriverRating) {
         Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findById(id);
+
         if (driverRatingFromDb.isPresent()) {
-            DriverRating updatingDriverRating = driverRatingFromDb.get();
-            DRIVER_RATING_MAPPER.updateDriverRatingFromDriverRatingPatchDto(driverRatingPatchDto,
-                    updatingDriverRating);
-            if (driverRatingPatchDto.getDriverId() != null) {
-                Optional<Driver> driverFromDb = driverRepository
-                        .findById(driverRatingPatchDto.getDriverId());
-                if (driverFromDb.isPresent()) {
-                    if (!driverFromDb.get().isDeleted()) {
-                        updatingDriverRating.setDriver(driverFromDb.get());
-                    } else {
-                        throw new DriverWasDeletedException(DRIVER_WAS_DELETED_MESSAGE);
-                    }
-                } else {
-                    throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
-                }
+            if (!driverRatingFromDb.get().getDriver().isDeleted()) {
+                updatingDriverRating.setDriver(driverRatingFromDb.get().getDriver());
+            } else {
+                throw new DriverWasDeletedException(DRIVER_WAS_DELETED_MESSAGE);
             }
+
+            if (updatingDriverRating.getRatingValue() == null) {
+                updatingDriverRating.setRatingValue(driverRatingFromDb.get().getRatingValue());
+            }
+
+            if (updatingDriverRating.getNumberOfRatings() == null) {
+                updatingDriverRating.setNumberOfRatings(driverRatingFromDb.get().getNumberOfRatings());
+            }
+
+            updatingDriverRating.setId(id);
 
             return driverRatingRepository.save(updatingDriverRating);
         }
@@ -140,12 +131,17 @@ public class DriverRatingService {
         throw new DriverRatingNotFoundException(DRIVER_RATING_NOT_FOUND_MESSAGE);
     }
 
-    public void deleteDriverRatingById(long id) {
-        Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findById(id);
+    @Recover
+    public DriverRating fallbackPostgresHandle(Throwable throwable) {
+        if (throwable instanceof DataIntegrityViolationException) {
+            throw (DataIntegrityViolationException) throwable;
+        }
 
-        driverRatingFromDb.ifPresentOrElse(
-                driverRating -> driverRatingRepository.deleteById(id),
-                () -> {throw new DriverRatingNotFoundException(DRIVER_RATING_NOT_FOUND_MESSAGE);}
-        );
+        throw new DatabaseConnectionRefusedException(BAD_CONNECTION_TO_DATABASE_MESSAGE + CANNOT_UPDATE_DATA_MESSAGE);
+    }
+
+    @Recover
+    public List<DriverRating> recoverToPSQLException(Throwable throwable) {
+        throw new DatabaseConnectionRefusedException(BAD_CONNECTION_TO_DATABASE_MESSAGE + CANNOT_GET_DATA_MESSAGE);
     }
 }

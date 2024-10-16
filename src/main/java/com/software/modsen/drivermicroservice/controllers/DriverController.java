@@ -3,9 +3,12 @@ package com.software.modsen.drivermicroservice.controllers;
 import com.software.modsen.drivermicroservice.entities.driver.Driver;
 import com.software.modsen.drivermicroservice.entities.driver.DriverDto;
 import com.software.modsen.drivermicroservice.entities.driver.DriverPatchDto;
-import com.software.modsen.drivermicroservice.services.DriverService;
+import com.software.modsen.drivermicroservice.mappers.DriverMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,40 +16,90 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = "/api/driver", produces = "application/json")
+@AllArgsConstructor
+@Tag(name = "Driver controller.", description = "Allows to interact with drivers.")
 public class DriverController {
-    @Autowired
-    private DriverService driverService;
+    private com.software.modsen.drivermicroservice.services.DriverService driverService;
+    private final DriverMapper DRIVER_MAPPER = DriverMapper.INSTANCE;
 
     @GetMapping
-    public ResponseEntity<List<Driver>> getAllDriver() {
+    @Operation(
+            description = "Allows to get all drivers."
+    )
+    public ResponseEntity<List<Driver>> getAllDrivers() {
         return ResponseEntity.ok(driverService.getAllDrivers());
     }
 
+    @GetMapping("/not-deleted")
+    @Operation(
+            description = "Allows to get all not deleted drivers."
+    )
+    public ResponseEntity<List<Driver>> getAllNotDeletedDrivers() {
+        return ResponseEntity.ok(driverService.getAllNotDeletedDrivers());
+    }
+
     @GetMapping("/{id}")
-    public ResponseEntity<Driver> getDriverById(@PathVariable("id") long id) {
+    @Operation(
+            description = "Allows to get drivers by id."
+    )
+    public ResponseEntity<Driver> getDriverById(@PathVariable("id")
+                                                    @Parameter(description = "Driver id.") long id) {
         return ResponseEntity.ok(driverService.getDriverById(id));
     }
 
     @PostMapping
+    @Operation(
+            description = "Allows to save new driver."
+    )
     public ResponseEntity<Driver> saveDriver(@Valid
-                                       @RequestBody DriverDto driverDto) {
-        return ResponseEntity.ok(driverService.saveDriver(driverDto));
+                                       @RequestBody @Parameter(description = "Driver entity.")
+                                                 DriverDto driverDto) {
+        return ResponseEntity.ok(driverService.saveDriver(
+                driverDto.getCarId(),
+                DRIVER_MAPPER.fromDriverDtoToDriver(driverDto)));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Driver> updateDriverById(@PathVariable("id") long id,
-                                             @Valid @RequestBody DriverDto driverDto) {
-        return ResponseEntity.ok(driverService.updateDriver(id, driverDto));
+    @Operation(
+            description = "Allows to update driver by id."
+    )
+    public ResponseEntity<Driver> updateDriverById(@PathVariable("id") @Parameter(description = "Driver id.") long id,
+                                             @Valid @RequestBody @Parameter(description = "Driver entity.")
+                                             DriverDto driverDto) {
+        return ResponseEntity.ok(driverService.updateDriver(
+                id,
+                driverDto.getCarId(),
+                DRIVER_MAPPER.fromDriverDtoToDriver(driverDto)));
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<Driver> patchDriverById(@PathVariable("id") long id,
-                                            @Valid @RequestBody DriverPatchDto driverPatchDto) {
-        return ResponseEntity.ok(driverService.patchDriver(id, driverPatchDto));
+    @Operation(
+            description = "Allows to update driver by id."
+    )
+    public ResponseEntity<Driver> patchDriverById(@PathVariable("id") @Parameter(description = "Driver id.") long id,
+                                            @Valid @RequestBody @Parameter(description = "Driver entity.")
+                                            DriverPatchDto driverPatchDto) {
+        return ResponseEntity.ok(driverService.patchDriver(
+                id,
+                driverPatchDto.getCarId(),
+                DRIVER_MAPPER.fromDriverPatchDtoToDriver(driverPatchDto)));
     }
 
-    @PatchMapping("/{id}/soft-delete")
-    public ResponseEntity<Driver> softDeleteDriverByUd(@PathVariable("id") long id) {
+    @PostMapping("/{id}/soft-delete")
+    @Operation(
+            description = "Allows to soft delete driver by id."
+    )
+    public ResponseEntity<Driver> softDeleteDriverById(@PathVariable("id") @Parameter(description = "Driver id.")
+                                                           long id) {
         return ResponseEntity.ok(driverService.softDeleteDriverById(id));
+    }
+
+    @PostMapping("/{id}/soft-recovery")
+    @Operation(
+            description = "Allows to soft delete driver by id."
+    )
+    public ResponseEntity<Driver> softRecoveryDriverById(@PathVariable("id") @Parameter(description = "Driver id.")
+                                                             long id) {
+        return ResponseEntity.ok(driverService.softRecoveryDriverById(id));
     }
 }

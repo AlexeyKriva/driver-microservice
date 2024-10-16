@@ -3,7 +3,7 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
 
-    <changeSet id="version1-3" author="postgres">
+    <changeSet id="version1-5" author="postgres">
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists tableName="driver"/>
@@ -35,11 +35,11 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="version1-8" author="postgres">
+    <changeSet id="version1-6" author="postgres">
         <addUniqueConstraint tableName="driver" columnNames="car_id" constraintName="unique_car_id"/>
     </changeSet>
 
-    <changeSet id="version1-9" author="postgres">
+    <changeSet id="version1-7" author="postgres">
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists tableName="driver_rating"/>
@@ -57,6 +57,29 @@
                 <constraints nullable="false"/>
             </column>
             <column name="number_of_ratings" type="bigint" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="version1-8" author="postgres">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="driver_account"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="driver_account">
+            <column name="id" type="serial">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="driver_id" type="bigint">
+                <constraints nullable="false" foreignKeyName="fk_driver_account_driver" references="driver(id)"/>
+            </column>
+            <column name="balance" type="decimal(10,2)" defaultValue="0.00">
+                <constraints nullable="false"/>
+            </column>
+            <column name="currency" type="varchar(10)">
                 <constraints nullable="false"/>
             </column>
         </createTable>
