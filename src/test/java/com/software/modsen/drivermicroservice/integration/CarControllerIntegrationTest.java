@@ -3,6 +3,7 @@ package com.software.modsen.drivermicroservice.integration;
 import com.software.modsen.drivermicroservice.entities.car.Car;
 import com.software.modsen.drivermicroservice.entities.car.CarBrand;
 import com.software.modsen.drivermicroservice.entities.car.CarColor;
+import com.software.modsen.drivermicroservice.repositories.CarRepository;
 import com.software.modsen.drivermicroservice.services.CarService;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.*;
@@ -10,17 +11,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 import java.util.List;
 
@@ -33,42 +27,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-@Testcontainers
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class CarControllerIntegrationTest {
+public class CarControllerIntegrationTest extends TestconteinersConfig {
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
     private CarService carService;
 
-    @Container
-    @ServiceConnection
-    private static final PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>(
-            DockerImageName.parse("postgres:15"))
-            .withDatabaseName("cab-aggregator-db")
-            .withUsername("postgres")
-            .withPassword("98479847");
+    @Autowired
+    private CarRepository carRepository;
 
-    @DynamicPropertySource
-    static void configureDatabase(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
-        registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
-        registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
-    }
-
-    static boolean isAlreadySetUped = false;
-
-    @BeforeEach
-    void setUp() {
-        if (!isAlreadySetUped) {
-            List<Car> cars = defaultCars();
-            for (Car car : cars) {
-                carService.saveCar(car);
-            }
-
-            isAlreadySetUped = true;
-        }
+    @AfterEach
+    void setDown() {
+        carRepository.deleteAll();
     }
 
     private static List<Car> defaultCars() {
@@ -101,10 +72,14 @@ public class CarControllerIntegrationTest {
     }
 
     @Test
-    @Order(1)
     @SneakyThrows
     void getAllCarsTest_ReturnsCars() {
         //given
+        List<Car> cars = defaultCars();
+        for (Car car : cars) {
+            carService.saveCar(car);
+        }
+
         MvcResult mvcResult = mockMvc.perform(get("/api/car")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -131,10 +106,14 @@ public class CarControllerIntegrationTest {
     }
 
     @Test
-    @Order(2)
     @SneakyThrows
     void getAllNotDeletedCarsTest_ReturnsValidCars() {
         //given
+        List<Car> cars = defaultCars();
+        for (Car car : cars) {
+            carService.saveCar(car);
+        }
+
         MvcResult mvcResult = mockMvc.perform(get("/api/car/not-deleted")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -161,11 +140,13 @@ public class CarControllerIntegrationTest {
     }
 
     @Test
-    @Order(3)
     @SneakyThrows
     void getCarByIdTest_ReturnsCar() {
         //given
-        MvcResult mvcResult = mockMvc.perform(get("/api/car/1")
+        Car car = defaultCars().get(0);
+        carService.saveCar(car);
+
+        MvcResult mvcResult = mockMvc.perform(get("/api/car/" + car.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -191,7 +172,6 @@ public class CarControllerIntegrationTest {
             """;
 
     @Test
-    @Order(4)
     @SneakyThrows
     void saveCarTest_ReturnsCar() {
         //given
@@ -206,11 +186,9 @@ public class CarControllerIntegrationTest {
 
         //then
         assertAll("Check response content",
-                () -> assertTrue(responseContent.contains("5")),
                 () -> assertTrue(responseContent.contains("YELLOW")),
                 () -> assertTrue(responseContent.contains("BMW")),
-                () -> assertTrue(responseContent.contains("A123AB-3")),
-                () -> assertTrue(responseContent.contains("false"))
+                () -> assertTrue(responseContent.contains("A123AB-3"))
         );
     }
 
@@ -223,11 +201,13 @@ public class CarControllerIntegrationTest {
             """;
 
     @Test
-    @Order(5)
     @SneakyThrows
     void updateCarByIdTest_ReturnsCar() {
         //given
-        MvcResult mvcResult = mockMvc.perform(put("/api/car/2")
+        Car car = defaultCars().get(1);
+        carService.saveCar(car);
+
+        MvcResult mvcResult = mockMvc.perform(put("/api/car/" + car.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(carUpdateDto))
                 .andExpect(status().isOk())
@@ -254,11 +234,13 @@ public class CarControllerIntegrationTest {
             """;
 
     @Test
-    @Order(6)
     @SneakyThrows
     void patchCarByIdTest_ReturnsCar() {
         //given
-        MvcResult mvcResult = mockMvc.perform(patch("/api/car/1")
+        Car car = defaultCars().get(0);
+        carService.saveCar(car);
+
+        MvcResult mvcResult = mockMvc.perform(patch("/api/car/" + car.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(carPatchDto))
                 .andExpect(status().isOk())
@@ -278,11 +260,14 @@ public class CarControllerIntegrationTest {
     }
 
     @Test
-    @Order(7)
     @SneakyThrows
     void softDeleteCarByIdTest_ReturnsCar() {
         //given
-        MvcResult mvcResult = mockMvc.perform(post("/api/car/4/soft-delete")
+        Car car = defaultCars().get(3);
+        carService.saveCar(car);
+
+        MvcResult mvcResult = mockMvc.perform(post("/api/car/" + car.getId() +
+                        "/soft-delete")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -292,7 +277,6 @@ public class CarControllerIntegrationTest {
 
         //then
         assertAll("Check response content",
-                () -> assertTrue(responseContent.contains("4")),
                 () -> assertTrue(responseContent.contains("WHITE")),
                 () -> assertTrue(responseContent.contains("VOLKSWAGEN")),
                 () -> assertTrue(responseContent.contains("3333TY-3")),
@@ -301,11 +285,14 @@ public class CarControllerIntegrationTest {
     }
 
     @Test
-    @Order(8)
     @SneakyThrows
     void softRecoveryCarByIdTest_ReturnsCar() {
         //given
-        MvcResult mvcResult = mockMvc.perform(post("/api/car/3/soft-recovery")
+        Car car = defaultCars().get(2);
+        carService.saveCar(car);
+
+        MvcResult mvcResult = mockMvc.perform(post("/api/car/" + car.getId() +
+                        "/soft-recovery")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();

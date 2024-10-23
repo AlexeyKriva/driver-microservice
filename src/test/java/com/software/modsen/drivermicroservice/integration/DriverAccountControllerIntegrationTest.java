@@ -5,29 +5,24 @@ import com.software.modsen.drivermicroservice.entities.car.CarBrand;
 import com.software.modsen.drivermicroservice.entities.car.CarColor;
 import com.software.modsen.drivermicroservice.entities.driver.Driver;
 import com.software.modsen.drivermicroservice.entities.driver.Sex;
+import com.software.modsen.drivermicroservice.entities.driver.account.DriverAccount;
+import com.software.modsen.drivermicroservice.repositories.CarRepository;
+import com.software.modsen.drivermicroservice.repositories.DriverAccountRepository;
+import com.software.modsen.drivermicroservice.repositories.DriverRatingRepository;
+import com.software.modsen.drivermicroservice.repositories.DriverRepository;
 import com.software.modsen.drivermicroservice.services.CarService;
 import com.software.modsen.drivermicroservice.services.DriverService;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 import java.util.List;
 
@@ -40,9 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-@Testcontainers
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class DriverAccountControllerIntegrationTest {
+public class DriverAccountControllerIntegrationTest extends TestconteinersConfig {
     @Autowired
     private MockMvc mockMvc;
 
@@ -52,38 +45,24 @@ public class DriverAccountControllerIntegrationTest {
     @Autowired
     private CarService carService;
 
-    @Container
-    @ServiceConnection
-    private static final PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>(
-            DockerImageName.parse("postgres:15"))
-            .withDatabaseName("cab-aggregator-db")
-            .withUsername("postgres")
-            .withPassword("98479847");
+    @Autowired
+    private CarRepository carRepository;
 
-    @DynamicPropertySource
-    static void configureDatabase(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
-        registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
-        registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
-    }
+    @Autowired
+    private DriverRepository driverRepository;
 
-    static boolean isAlreadySetUped = false;
+    @Autowired
+    private DriverRatingRepository driverRatingRepository;
 
-    @BeforeEach
-    void setUp() {
-        if (!isAlreadySetUped) {
-            List<Driver> drivers = defaultDrivers();
-            long carId = 1;
-            List<Car> cars = defaultCars();
-            for (Car car : cars) {
-                carService.saveCar(car);
-            }
-            for (Driver driver : drivers) {
-                driverService.saveDriver(carId++, driver);
-            }
+    @Autowired
+    private DriverAccountRepository driverAccountRepository;
 
-            isAlreadySetUped = true;
-        }
+    @AfterEach
+    void setDown() {
+        driverAccountRepository.deleteAll();
+        driverRatingRepository.deleteAll();
+        driverRepository.deleteAll();
+        carRepository.deleteAll();
     }
 
     private static List<Car> defaultCars() {
@@ -117,7 +96,6 @@ public class DriverAccountControllerIntegrationTest {
                         .phoneNumber("+375293333333")
                         .sex(Sex.MALE)
                         .car(Car.builder()
-                                .id(1)
                                 .color(CarColor.BLUE)
                                 .brand(CarBrand.AUDI)
                                 .carNumber("1234AB-1")
@@ -132,7 +110,6 @@ public class DriverAccountControllerIntegrationTest {
                         .phoneNumber("+375443333333")
                         .sex(Sex.MALE)
                         .car(Car.builder()
-                                .id(2)
                                 .color(CarColor.BROWN)
                                 .brand(CarBrand.FERRARI)
                                 .carNumber("7890AB-7")
@@ -147,7 +124,6 @@ public class DriverAccountControllerIntegrationTest {
                         .phoneNumber("+375333333333")
                         .sex(Sex.MALE)
                         .car(Car.builder()
-                                .id(3)
                                 .color(CarColor.GREEN)
                                 .brand(CarBrand.MERCEDES_BENZ)
                                 .carNumber("3333AB-3")
@@ -162,6 +138,13 @@ public class DriverAccountControllerIntegrationTest {
     @SneakyThrows
     void getAllDriverAccountsTest_ReturnsDriverAccounts() {
         //given
+        List<Car> cars = defaultCars();
+        List<Driver> drivers = defaultDrivers();
+        for (int i = 0; i < cars.size(); i++) {
+            Car car = carService.saveCar(cars.get(i));
+            driverService.saveDriver(car.getId(), drivers.get(i));
+        }
+
         MvcResult mvcResult = mockMvc.perform(get("/api/driver/account")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -183,6 +166,14 @@ public class DriverAccountControllerIntegrationTest {
     @Test
     @SneakyThrows
     void getAllNotDeletedDriverAccountsTest_ReturnsDriverAccounts() {
+        //given
+        List<Car> cars = defaultCars();
+        List<Driver> drivers = defaultDrivers();
+        for (int i = 0; i < cars.size(); i++) {
+            Car car = carService.saveCar(cars.get(i));
+            driverService.saveDriver(car.getId(), drivers.get(i));
+        }
+
         MvcResult mvcResult = mockMvc.perform(get("/api/driver/account/not-deleted")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -205,7 +196,13 @@ public class DriverAccountControllerIntegrationTest {
     @SneakyThrows
     void getNotDeletedDriverAccountsByIdTest_ReturnsDriverAccount() {
         //given
-        MvcResult mvcResult = mockMvc.perform(get("/api/driver/account/1")
+        Car car = defaultCars().get(0);
+        car = carService.saveCar(car);
+        Driver driver = defaultDrivers().get(0);
+        driver = driverService.saveDriver(car.getId(), driver);
+        DriverAccount driverAccount = driverAccountRepository.findByDriverId(driver.getId()).get();
+
+        MvcResult mvcResult = mockMvc.perform(get("/api/driver/account/" + driverAccount.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -225,7 +222,13 @@ public class DriverAccountControllerIntegrationTest {
     @SneakyThrows
     void getNotDeletedDriverAccountsByDriverIdTest_ReturnsDriverAccount (){
         //given
-        MvcResult mvcResult = mockMvc.perform(get("/api/driver/account/2/by-driver")
+        Car car = defaultCars().get(1);
+        car = carService.saveCar(car);
+        Driver driver = defaultDrivers().get(1);
+        driver = driverService.saveDriver(car.getId(), driver);
+
+        MvcResult mvcResult = mockMvc.perform(get("/api/driver/account/" + driver.getId() +
+                        "/by-driver")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -259,7 +262,13 @@ public class DriverAccountControllerIntegrationTest {
     @SneakyThrows
     void increaseBalanceByDriverIdTest_ReturnsDriverAccount() {
         //given
-        MvcResult mvcResult = mockMvc.perform(put("/api/driver/account/1/increase")
+        Car car = defaultCars().get(0);
+        car = carService.saveCar(car);
+        Driver driver = defaultDrivers().get(0);
+        driver = driverService.saveDriver(car.getId(), driver);
+
+        MvcResult mvcResult = mockMvc.perform(put("/api/driver/account/" + driver.getId() +
+                        "/increase")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(passengerAccountIncreaseDto))
                 .andExpect(status().isOk())
@@ -280,11 +289,18 @@ public class DriverAccountControllerIntegrationTest {
     @SneakyThrows
     void cancelBalanceByPassengerIdTest_ReturnsPassengerAccount() {
         //given
-        mockMvc.perform(put("/api/driver/account/2/increase")
+        Car car = defaultCars().get(1);
+        car = carService.saveCar(car);
+        Driver driver = defaultDrivers().get(1);
+        driver = driverService.saveDriver(car.getId(), driver);
+
+        mockMvc.perform(put("/api/driver/account/" + driver.getId() +
+                "/increase")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(passengerAccountIncreaseDto));
 
-        MvcResult mvcResult = mockMvc.perform(put("/api/driver/account/2/cancel")
+        MvcResult mvcResult = mockMvc.perform(put("/api/driver/account/" + driver.getId() +
+                        "/cancel")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(passengerAccountCancelDto))
                 .andExpect(status().isOk())

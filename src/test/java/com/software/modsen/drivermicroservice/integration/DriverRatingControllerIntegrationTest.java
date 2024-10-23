@@ -5,6 +5,11 @@ import com.software.modsen.drivermicroservice.entities.car.CarBrand;
 import com.software.modsen.drivermicroservice.entities.car.CarColor;
 import com.software.modsen.drivermicroservice.entities.driver.Driver;
 import com.software.modsen.drivermicroservice.entities.driver.Sex;
+import com.software.modsen.drivermicroservice.entities.driver.rating.DriverRating;
+import com.software.modsen.drivermicroservice.repositories.CarRepository;
+import com.software.modsen.drivermicroservice.repositories.DriverAccountRepository;
+import com.software.modsen.drivermicroservice.repositories.DriverRatingRepository;
+import com.software.modsen.drivermicroservice.repositories.DriverRepository;
 import com.software.modsen.drivermicroservice.services.CarService;
 import com.software.modsen.drivermicroservice.services.DriverService;
 import lombok.SneakyThrows;
@@ -13,17 +18,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 import java.util.List;
 
@@ -35,9 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-@Testcontainers
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class DriverRatingControllerIntegrationTest {
+public class DriverRatingControllerIntegrationTest extends TestconteinersConfig {
     @Autowired
     private MockMvc mockMvc;
 
@@ -47,38 +43,24 @@ public class DriverRatingControllerIntegrationTest {
     @Autowired
     private DriverService driverService;
 
-    @Container
-    @ServiceConnection
-    private static final PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>(
-            DockerImageName.parse("postgres:15"))
-            .withDatabaseName("cab-aggregator-db")
-            .withUsername("postgres")
-            .withPassword("98479847");
+    @Autowired
+    private CarRepository carRepository;
 
-    @DynamicPropertySource
-    static void configureDatabase(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
-        registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
-        registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
-    }
+    @Autowired
+    private DriverRepository driverRepository;
 
-    static boolean isAlreadySetUped = false;
+    @Autowired
+    private DriverRatingRepository driverRatingRepository;
 
-    @BeforeEach
-    void setUp() {
-        if (!isAlreadySetUped) {
-            List<Driver> drivers = defaultDrivers();
-            long carId = 1;
-            List<Car> cars = defaultCars();
-            for (Car car : cars) {
-                carService.saveCar(car);
-            }
-            for (Driver driver : drivers) {
-                driverService.saveDriver(carId++, driver);
-            }
+    @Autowired
+    private DriverAccountRepository driverAccountRepository;
 
-            isAlreadySetUped = true;
-        }
+    @AfterEach
+    void setDown() {
+        driverAccountRepository.deleteAll();
+        driverRatingRepository.deleteAll();
+        driverRepository.deleteAll();
+        carRepository.deleteAll();
     }
 
     private static List<Car> defaultCars() {
@@ -154,10 +136,16 @@ public class DriverRatingControllerIntegrationTest {
     }
 
     @Test
-    @Order(1)
     @SneakyThrows
     void getAllDriverRatingsTest_ReturnsDriverRatings() {
         //given
+        List<Car> cars = defaultCars();
+        List<Driver> drivers = defaultDrivers();
+        for (int i = 0; i < cars.size(); i++) {
+            Car car = carService.saveCar(cars.get(i));
+            driverService.saveDriver(car.getId(), drivers.get(i));
+        }
+
         MvcResult mvcResult = mockMvc.perform(get("/api/driver/rating")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -177,10 +165,16 @@ public class DriverRatingControllerIntegrationTest {
     }
 
     @Test
-    @Order(2)
     @SneakyThrows
     void getAllNotDeletedDriverRatingsTest_ReturnsValidDriverRatings() {
         //given
+        List<Car> cars = defaultCars();
+        List<Driver> drivers = defaultDrivers();
+        for (int i = 0; i < cars.size(); i++) {
+            Car car = carService.saveCar(cars.get(i));
+            driverService.saveDriver(car.getId(), drivers.get(i));
+        }
+
         MvcResult mvcResult = mockMvc.perform(get("/api/driver/rating/not-deleted")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -200,11 +194,16 @@ public class DriverRatingControllerIntegrationTest {
     }
 
     @Test
-    @Order(3)
     @SneakyThrows
     void getDriverRatingByIdTest_ReturnsDriverRating() {
         //given
-        MvcResult mvcResult = mockMvc.perform(get("/api/driver/rating/1")
+        Car car = defaultCars().get(0);
+        car = carService.saveCar(car);
+        Driver driver = defaultDrivers().get(0);
+        driver = driverService.saveDriver(car.getId(), driver);
+        DriverRating driverRating = driverRatingRepository.findByDriverId(driver.getId()).get();
+
+        MvcResult mvcResult = mockMvc.perform(get("/api/driver/rating/" + driverRating.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -221,11 +220,16 @@ public class DriverRatingControllerIntegrationTest {
     }
 
     @Test
-    @Order(4)
     @SneakyThrows
     void getDriverRatingByDriverIdTest_ReturnsPassengerRating() {
         //given
-        MvcResult mvcResult = mockMvc.perform(get("/api/driver/rating/2/by-driver")
+        Car car = defaultCars().get(1);
+        car = carService.saveCar(car);
+        Driver driver = defaultDrivers().get(1);
+        driver = driverService.saveDriver(car.getId(), driver);
+
+        MvcResult mvcResult = mockMvc.perform(get("/api/driver/rating/" + driver.getId() +
+                        "/by-driver")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -249,11 +253,16 @@ public class DriverRatingControllerIntegrationTest {
             """;
 
     @Test
-    @Order(5)
     @SneakyThrows
     void putDriverRatingByIdTest_ReturnsDriverRating() {
         //given
-        MvcResult mvcResult = mockMvc.perform(put("/api/driver/rating/1")
+        Car car = defaultCars().get(0);
+        car = carService.saveCar(car);
+        Driver driver = defaultDrivers().get(0);
+        driver = driverService.saveDriver(car.getId(), driver);
+        DriverRating driverRating = driverRatingRepository.findByDriverId(driver.getId()).get();
+
+        MvcResult mvcResult = mockMvc.perform(put("/api/driver/rating/" + driverRating.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(driverRatingDto))
                 .andExpect(status().isOk())
@@ -271,11 +280,16 @@ public class DriverRatingControllerIntegrationTest {
     }
 
     @Test
-    @Order(6)
     @SneakyThrows
     void patchDriverRatingByIdTest_ReturnsDriverRating() {
         //given
-        MvcResult mvcResult = mockMvc.perform(patch("/api/driver/rating/1")
+        Car car = defaultCars().get(0);
+        car = carService.saveCar(car);
+        Driver driver = defaultDrivers().get(0);
+        driver = driverService.saveDriver(car.getId(), driver);
+        DriverRating driverRating = driverRatingRepository.findByDriverId(driver.getId()).get();
+
+        MvcResult mvcResult = mockMvc.perform(patch("/api/driver/rating/" + driverRating.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(driverRatingDto))
                 .andExpect(status().isOk())
