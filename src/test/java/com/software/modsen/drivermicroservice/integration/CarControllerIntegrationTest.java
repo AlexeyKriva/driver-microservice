@@ -167,7 +167,7 @@ public class CarControllerIntegrationTest extends TestconteinersConfig {
                 {
                     "color": "YELLOW",
                     "brand": "BMW",
-                    "car_number": "A123AB-3"
+                    "carNumber": "A123AB-3"
                 }
             """;
 
@@ -196,7 +196,7 @@ public class CarControllerIntegrationTest extends TestconteinersConfig {
                 {
                     "color": "RED",
                     "brand": "LAMBORGHINI",
-                    "car_number": "3123AB-3"
+                    "carNumber": "3123AB-3"
                 }
             """;
 

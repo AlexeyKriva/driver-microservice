@@ -1,8 +1,8 @@
 package com.software.modsen.drivermicroservice.controllers;
 
 import com.software.modsen.drivermicroservice.entities.driver.account.DriverAccount;
-import com.software.modsen.drivermicroservice.entities.driver.account.DriverAccountCancelDto;
-import com.software.modsen.drivermicroservice.entities.driver.account.DriverAccountIncreaseDto;
+import com.software.modsen.drivermicroservice.entities.driver.account.DriverAccountBalanceDownDto;
+import com.software.modsen.drivermicroservice.entities.driver.account.DriverAccountBalanceUpDto;
 import com.software.modsen.drivermicroservice.mappers.DriverAccountMapper;
 import com.software.modsen.drivermicroservice.services.DriverAccountService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -66,10 +65,10 @@ public class DriverAccountController {
     public ResponseEntity<DriverAccount> increaseBalanceByDriverId(
             @PathVariable("driver_id") @Parameter(description = "Driver id.") long driverId,
             @Valid @RequestBody @Parameter(description = "Entity to increase driver balance.")
-            DriverAccountIncreaseDto driverAccountIncreaseDto) {
+            DriverAccountBalanceUpDto driverAccountBalanceUpDto) {
         return ResponseEntity.ok(driverAccountService.increaseBalance(
                 driverId,
-                DRIVER_ACCOUNT_MAPPER.fromDriverAccountIncreaseDtoToDriverAccount(driverAccountIncreaseDto)));
+                DRIVER_ACCOUNT_MAPPER.fromDriverAccountIncreaseDtoToDriverAccount(driverAccountBalanceUpDto)));
     }
 
     @PutMapping("/{driver_id}/cancel")
@@ -79,9 +78,9 @@ public class DriverAccountController {
     public ResponseEntity<DriverAccount> cancelBalanceByDriverId(
             @PathVariable("driver_id") @Parameter(description = "Driver id.") long driverId,
             @Valid @RequestBody @Parameter(description = "Entity to cancel driver balance.")
-            DriverAccountCancelDto driverAccountCancelDto) {
+            DriverAccountBalanceDownDto driverAccountBalanceDownDto) {
         return ResponseEntity.ok(driverAccountService.cancelBalance(
                 driverId,
-                DRIVER_ACCOUNT_MAPPER.fromDriverAccountCancelDtoToDriverAccount(driverAccountCancelDto)));
+                DRIVER_ACCOUNT_MAPPER.fromDriverAccountCancelDtoToDriverAccount(driverAccountBalanceDownDto)));
     }
 }

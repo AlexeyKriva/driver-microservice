@@ -1,8 +1,8 @@
 package com.software.modsen.drivermicroservice.mappers;
 
 import com.software.modsen.drivermicroservice.entities.driver.account.DriverAccount;
-import com.software.modsen.drivermicroservice.entities.driver.account.DriverAccountCancelDto;
-import com.software.modsen.drivermicroservice.entities.driver.account.DriverAccountIncreaseDto;
+import com.software.modsen.drivermicroservice.entities.driver.account.DriverAccountBalanceDownDto;
+import com.software.modsen.drivermicroservice.entities.driver.account.DriverAccountBalanceUpDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -10,7 +10,7 @@ import org.mapstruct.factory.Mappers;
 public interface DriverAccountMapper {
     DriverAccountMapper INSTANCE = Mappers.getMapper(DriverAccountMapper.class);
 
-    DriverAccount fromDriverAccountIncreaseDtoToDriverAccount(DriverAccountIncreaseDto driverAccountIncreaseDto);
+    DriverAccount fromDriverAccountIncreaseDtoToDriverAccount(DriverAccountBalanceUpDto driverAccountBalanceUpDto);
 
-    DriverAccount fromDriverAccountCancelDtoToDriverAccount(DriverAccountCancelDto driverAccountCancelDto);
+    DriverAccount fromDriverAccountCancelDtoToDriverAccount(DriverAccountBalanceDownDto driverAccountBalanceDownDto);
 }

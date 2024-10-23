@@ -18,7 +18,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -244,14 +243,14 @@ public class DriverAccountControllerIntegrationTest extends TestconteinersConfig
         );
     }
 
-    private final String passengerAccountIncreaseDto = """
+    private final String passengerAccountBalanceUpDto = """
             {
                 "balance": 1000.0,
                 "currency": "BYN"
             }
             """;
 
-    private final String passengerAccountCancelDto = """
+    private final String passengerAccountBalanceDownDto = """
             {
                 "balance": 800.0,
                 "currency": "BYN"
@@ -270,7 +269,7 @@ public class DriverAccountControllerIntegrationTest extends TestconteinersConfig
         MvcResult mvcResult = mockMvc.perform(put("/api/driver/account/" + driver.getId() +
                         "/increase")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(passengerAccountIncreaseDto))
+                        .content(passengerAccountBalanceUpDto))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -297,12 +296,12 @@ public class DriverAccountControllerIntegrationTest extends TestconteinersConfig
         mockMvc.perform(put("/api/driver/account/" + driver.getId() +
                 "/increase")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(passengerAccountIncreaseDto));
+                .content(passengerAccountBalanceUpDto));
 
         MvcResult mvcResult = mockMvc.perform(put("/api/driver/account/" + driver.getId() +
                         "/cancel")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(passengerAccountCancelDto))
+                        .content(passengerAccountBalanceDownDto))
                 .andExpect(status().isOk())
                 .andReturn();
 

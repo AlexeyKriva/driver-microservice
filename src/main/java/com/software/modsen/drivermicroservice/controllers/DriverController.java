@@ -55,7 +55,7 @@ public class DriverController {
                                        @RequestBody @Parameter(description = "Driver entity.")
                                                  DriverDto driverDto) {
         return ResponseEntity.ok(driverService.saveDriver(
-                driverDto.getCarId(),
+                driverDto.carId(),
                 DRIVER_MAPPER.fromDriverDtoToDriver(driverDto)));
     }
 
@@ -68,7 +68,7 @@ public class DriverController {
                                              DriverDto driverDto) {
         return ResponseEntity.ok(driverService.updateDriver(
                 id,
-                driverDto.getCarId(),
+                driverDto.carId(),
                 DRIVER_MAPPER.fromDriverDtoToDriver(driverDto)));
     }
 
@@ -81,7 +81,7 @@ public class DriverController {
                                             DriverPatchDto driverPatchDto) {
         return ResponseEntity.ok(driverService.patchDriver(
                 id,
-                driverPatchDto.getCarId(),
+                driverPatchDto.carId(),
                 DRIVER_MAPPER.fromDriverPatchDtoToDriver(driverPatchDto)));
     }
 

@@ -247,8 +247,8 @@ public class DriverRatingControllerIntegrationTest extends TestconteinersConfig 
 
     private final String driverRatingDto = """
                 {
-                    "rating_value": 5,
-                    "number_of_ratings": 100
+                    "ratingValue": 5,
+                    "numberOfRatings": 100
                 }
             """;
 
