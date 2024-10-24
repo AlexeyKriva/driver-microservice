@@ -6,7 +6,7 @@
 //    description "Should return driver account response entity"
 //    request {
 //        method 'PUT'
-//        url '/api/driver/account/3/cancel'
+//        url '/api/drivers/3/accounts/down'
 //        headers {
 //            header('Content-Type', 'application/vnd.fraud.v1+json')
 //        }
