@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(value = "/api/car", produces = "application/json")
+@RequestMapping(value = "/api/cars", produces = "application/json")
 @AllArgsConstructor
 @Tag(name = "Car controller.", description = "Allows to interact with cars.")
 public class CarController {
@@ -27,16 +27,12 @@ public class CarController {
     @Operation(
             description = "Allows to get all cars."
     )
-    public ResponseEntity<List<Car>> getAllCars() {
-        return ResponseEntity.ok(carService.getAllCars());
-    }
-
-    @GetMapping("/not-deleted")
-    @Operation(
-            description = "Allows to get all not deleted cars."
-    )
-    public ResponseEntity<List<Car>> getAllNotDeletedCars() {
-        return ResponseEntity.ok(carService.getAllNotDeletedCars());
+    public ResponseEntity<List<Car>> getAllCars(
+            @RequestParam(name = "includeDeleted", required = false,
+                    defaultValue = "true")
+            boolean includeDeleted
+    ) {
+        return ResponseEntity.ok(carService.getAllCars(includeDeleted));
     }
 
     @GetMapping("/{id}")
@@ -77,7 +73,7 @@ public class CarController {
         return ResponseEntity.ok(carService.patchCar(id, CAR_MAPPER.fromCarPatchDtoToCar(carPatchDto)));
     }
 
-    @PostMapping("/{id}/soft-delete")
+    @DeleteMapping("/{id}")
     @Operation(
             description = "Allows to soft delete car."
     )
@@ -85,7 +81,7 @@ public class CarController {
         return ResponseEntity.ok(carService.softDeleteCarById(id));
     }
 
-    @PostMapping("/{id}/soft-recovery")
+    @PostMapping("/{id}/restore")
     @Operation(
             description = "Allows to soft recovery car."
     )

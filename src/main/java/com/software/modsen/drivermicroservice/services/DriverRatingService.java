@@ -31,29 +31,28 @@ public class DriverRatingService {
     private DriverRepository driverRepository;
 
     @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
-    public List<DriverRating> getAllDriverRatings() {
-        return driverRatingRepository.findAll();
-    }
+    public List<DriverRating> getAllDriverRatings(boolean includeDeleted) {
+        if (includeDeleted) {
+            return driverRatingRepository.findAll();
+        } else {
+            List<DriverRating> driverRatingsFromDb = driverRatingRepository.findAll();
+            List<DriverRating> driverRatingsAndNotDeleted = new ArrayList<>();
 
-    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
-    public List<DriverRating> getAllNotDeletedDriverRatings() {
-        List<DriverRating> driverRatingsFromDb = driverRatingRepository.findAll();
-        List<DriverRating> driverRatingsAndNotDeleted = new ArrayList<>();
+            for (DriverRating driverRatingFromDb : driverRatingsFromDb) {
+                Optional<Driver> driverFromDb = driverRepository
+                        .findDriverByIdAndIsDeleted(driverRatingFromDb.getDriver().getId(), false);
 
-        for (DriverRating driverRatingFromDb : driverRatingsFromDb) {
-            Optional<Driver> driverFromDb = driverRepository
-                    .findDriverByIdAndIsDeleted(driverRatingFromDb.getDriver().getId(), false);
-
-            if (driverFromDb.isPresent()) {
-                driverRatingsAndNotDeleted.add(driverRatingFromDb);
+                if (driverFromDb.isPresent()) {
+                    driverRatingsAndNotDeleted.add(driverRatingFromDb);
+                }
             }
-        }
 
-        if (driverRatingsAndNotDeleted.isEmpty()) {
-            throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
-        }
+            if (driverRatingsAndNotDeleted.isEmpty()) {
+                throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
+            }
 
-        return driverRatingsAndNotDeleted;
+            return driverRatingsAndNotDeleted;
+        }
     }
 
     @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))

@@ -59,7 +59,7 @@ public class DriverServiceTest {
         doReturn(drivers).when(driverRepository).findAll();
 
         //when
-        List<Driver> driversFromDb = driverService.getAllDrivers();
+        List<Driver> driversFromDb = driverService.getAllDrivers(true);
 
         //then
         assertNotNull(driversFromDb);
@@ -75,7 +75,7 @@ public class DriverServiceTest {
         doReturn(notDeletedDriver).when(driverRepository).findAll();
 
         //when
-        List<Driver> driversFromDb = driverService.getAllNotDeletedDrivers();
+        List<Driver> driversFromDb = driverService.getAllDrivers(false);
 
         //then
         assertNotNull(driversFromDb);

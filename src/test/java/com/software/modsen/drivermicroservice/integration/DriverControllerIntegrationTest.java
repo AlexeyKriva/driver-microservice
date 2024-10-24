@@ -169,7 +169,7 @@ public class DriverControllerIntegrationTest extends TestconteinersConfig {
             driverService.saveDriver(car.getId(), drivers.get(i));
         }
 
-        MvcResult mvcResult = mockMvc.perform(get("/api/driver")
+        MvcResult mvcResult = mockMvc.perform(get("/api/drivers?includeDeleted=true")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -209,7 +209,7 @@ public class DriverControllerIntegrationTest extends TestconteinersConfig {
             driverService.saveDriver(car.getId(), drivers.get(i));
         }
 
-        MvcResult mvcResult = mockMvc.perform(get("/api/driver/not-deleted")
+        MvcResult mvcResult = mockMvc.perform(get("/api/drivers?includeDeleted=false")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -246,7 +246,7 @@ public class DriverControllerIntegrationTest extends TestconteinersConfig {
         Driver driver = defaultDrivers().get(0);
         driver = driverService.saveDriver(car.getId(), driver);
 
-        MvcResult mvcResult = mockMvc.perform(get("/api/driver/" + driver.getId())
+        MvcResult mvcResult = mockMvc.perform(get("/api/drivers/" + driver.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -268,7 +268,7 @@ public class DriverControllerIntegrationTest extends TestconteinersConfig {
                 {
                     "name": "Danik",
                     "email": "danik@gmail.com",
-                    "phone_number": "+375443377999",
+                    "phoneNumber": "+375443377999",
                     "sex": "MALE",
             """;
 
@@ -279,9 +279,9 @@ public class DriverControllerIntegrationTest extends TestconteinersConfig {
         Car car = defaultCars().get(0);
         car = carService.saveCar(car);
 
-        driverDto += "\"car_id\": " + car.getId() + "}";
+        driverDto += "\"carId\": " + car.getId() + "}";
 
-        MvcResult mvcResult = mockMvc.perform(post("/api/driver")
+        MvcResult mvcResult = mockMvc.perform(post("/api/drivers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(driverDto))
                 .andExpect(status().isOk())
@@ -303,7 +303,7 @@ public class DriverControllerIntegrationTest extends TestconteinersConfig {
                 {
                     "name": "Nikita",
                     "email": "nikita@gmail.com",
-                    "phone_number": "+375447655431",
+                    "phoneNumber": "+375447655431",
                     "sex": "MALE",
             """;
 
@@ -316,9 +316,9 @@ public class DriverControllerIntegrationTest extends TestconteinersConfig {
         Driver driver = defaultDrivers().get(1);
         driver = driverService.saveDriver(car.getId(), driver);
 
-        driverUpdateDto += "\"car_id\": " + car.getId() + "}";
+        driverUpdateDto += "\"carId\": " + car.getId() + "}";
 
-        MvcResult mvcResult = mockMvc.perform(put("/api/driver/" + driver.getId())
+        MvcResult mvcResult = mockMvc.perform(put("/api/drivers/" + driver.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(driverUpdateDto))
                 .andExpect(status().isOk())
@@ -352,7 +352,7 @@ public class DriverControllerIntegrationTest extends TestconteinersConfig {
         Driver driver = defaultDrivers().get(0);
         driver = driverService.saveDriver(car.getId(), driver);
 
-        MvcResult mvcResult = mockMvc.perform(patch("/api/driver/" + car.getId())
+        MvcResult mvcResult = mockMvc.perform(patch("/api/drivers/" + car.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(driverPatchDto))
                 .andExpect(status().isOk())
@@ -379,8 +379,7 @@ public class DriverControllerIntegrationTest extends TestconteinersConfig {
         Driver driver = defaultDrivers().get(3);
         driver = driverService.saveDriver(car.getId(), driver);
 
-        MvcResult mvcResult = mockMvc.perform(post("/api/driver/" + driver.getId() +
-                        "/soft-delete")
+        MvcResult mvcResult = mockMvc.perform(delete("/api/drivers/" + driver.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -407,8 +406,8 @@ public class DriverControllerIntegrationTest extends TestconteinersConfig {
         Driver driver = defaultDrivers().get(2);
         driver = driverService.saveDriver(car.getId(), driver);
 
-        MvcResult mvcResult = mockMvc.perform(post("/api/driver/" + driver.getId() +
-                        "/soft-recovery")
+        MvcResult mvcResult = mockMvc.perform(post("/api/drivers/" + driver.getId() +
+                        "/restore")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(driverPatchDto))
                 .andExpect(status().isOk())

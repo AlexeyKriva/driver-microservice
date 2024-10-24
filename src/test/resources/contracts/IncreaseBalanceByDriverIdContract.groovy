@@ -7,7 +7,7 @@
 //    description "Should return driver account response entity"
 //    request {
 //        method 'PUT'
-//        url '/api/driver/account/2/increase'
+//        url '/api/drivers/2/accounts/up'
 //        headers {
 //            header('Content-Type', 'application/vnd.fraud.v1+json')
 //        }

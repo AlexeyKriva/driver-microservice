@@ -42,15 +42,14 @@ public class CarService {
     }
 
     @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
-    public List<Car> getAllCars() {
-        return carRepository.findAll();
-    }
-
-    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
-    public List<Car> getAllNotDeletedCars() {
-        return carRepository.findAll().stream()
-                .filter(car -> !car.isDeleted())
-                .collect(Collectors.toList());
+    public List<Car> getAllCars(boolean includeDeleted) {
+        if (includeDeleted) {
+            return carRepository.findAll();
+        } else {
+            return carRepository.findAll().stream()
+                    .filter(car -> !car.isDeleted())
+                    .collect(Collectors.toList());
+        }
     }
 
     @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")

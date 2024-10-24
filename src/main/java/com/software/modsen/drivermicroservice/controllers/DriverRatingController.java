@@ -16,30 +16,26 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(value = "/api/driver/rating", produces = "application/json")
+@RequestMapping(value = "/api/drivers", produces = "application/json")
 @AllArgsConstructor
 @Tag(name = "Driver rating controller.", description = "Allows to interact with driver ratings.")
 public class DriverRatingController {
     private DriverRatingService driverRatingService;
     private final DriverRatingMapper DRIVER_RATING_MAPPER = DriverRatingMapper.INSTANCE;
 
-    @GetMapping
+    @GetMapping("/ratings")
     @Operation(
             description = "Allows to get all driver ratings."
     )
-    public ResponseEntity<List<DriverRating>> getAllDriverRatings() {
-        return ResponseEntity.ok(driverRatingService.getAllDriverRatings());
+    public ResponseEntity<List<DriverRating>> getAllDriverRatings(
+            @RequestParam(name = "includeDeleted",
+                    required = false, defaultValue = "true")
+            boolean includeDeleted
+    ) {
+        return ResponseEntity.ok(driverRatingService.getAllDriverRatings(includeDeleted));
     }
 
-    @GetMapping("/not-deleted")
-    @Operation(
-            description = "Allows to get all not deleted driver ratings."
-    )
-    public ResponseEntity<List<DriverRating>> getAllNotDeletedDriverRatings() {
-        return ResponseEntity.ok(driverRatingService.getAllNotDeletedDriverRatings());
-    }
-
-    @GetMapping("/{id}")
+    @GetMapping("/ratings/{id}")
     @Operation(
             description = "Allows to get driver rating by id."
     )
@@ -49,7 +45,7 @@ public class DriverRatingController {
         return ResponseEntity.ok(driverRatingService.getDriverRatingById(id));
     }
 
-    @GetMapping("/{driver_id}/by-driver")
+    @GetMapping("/{driver_id}/ratings")
     @Operation(
             description = "Allows to get driver rating by driver id."
     )
@@ -59,7 +55,7 @@ public class DriverRatingController {
         return ResponseEntity.ok(driverRatingService.getDriverRatingByDriverId(driverId));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/ratings/{id}")
     @Operation(
             description = "Allows to update driver rating by id."
     )
@@ -76,7 +72,7 @@ public class DriverRatingController {
                 DRIVER_RATING_MAPPER.fromDriverRatingPutDtoToDriverRating(driverRatingPutDto)));
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping("/ratings/{id}")
     @Operation(
             description = "Allows to update driver rating by id."
     )
