@@ -48,10 +48,10 @@ public class CarControllerTest {
     void getAllCarsTest_ReturnsValidResponseEntity() {
         //given
         List<Car> carsFromDb = initCars();
-        doReturn(carsFromDb).when(this.carService).getAllCars();
+        doReturn(carsFromDb).when(this.carService).getAllCars(true);
 
         //when
-        ResponseEntity<List<Car>> responseEntity = carController.getAllCars();
+        ResponseEntity<List<Car>> responseEntity = carController.getAllCars(true);
 
         //then
         assertNotNull(responseEntity);
@@ -64,10 +64,10 @@ public class CarControllerTest {
     void getAllNotDeletedCarsTest_ReturnsValidResponseEntity() {
         //given
         List<Car> carsFromDb = initCars();
-        doReturn(carsFromDb).when(this.carService).getAllNotDeletedCars();
+        doReturn(carsFromDb).when(this.carService).getAllCars(false);
 
         //when
-        ResponseEntity<List<Car>> responseEntity = carController.getAllNotDeletedCars();
+        ResponseEntity<List<Car>> responseEntity = carController.getAllCars(false);
 
         //then
         assertNotNull(responseEntity);

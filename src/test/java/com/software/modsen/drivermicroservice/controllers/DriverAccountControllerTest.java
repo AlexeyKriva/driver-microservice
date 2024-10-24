@@ -64,10 +64,11 @@ public class DriverAccountControllerTest {
     void getAllDriverAccountsTest_ReturnsValidResponseEntity() {
         //given
         List<DriverAccount> driverAccounts = initDriverAccounts();
-        doReturn(driverAccounts).when(this.driverAccountService).getAllDriverAccounts();
+        doReturn(driverAccounts).when(this.driverAccountService).getAllDriverAccounts(true);
 
         //when
-        ResponseEntity<List<DriverAccount>> responseEntity = driverAccountController.getAllDriverAccounts();
+        ResponseEntity<List<DriverAccount>> responseEntity = driverAccountController
+                .getAllDriverAccounts(true);
 
         //then
         assertNotNull(responseEntity);
@@ -80,11 +81,11 @@ public class DriverAccountControllerTest {
     void getAllNotDeletedDriverAccountsTest_ReturnsValidResponseEntity() {
         //given
         List<DriverAccount> driverAccounts = initDriverAccounts();
-        doReturn(driverAccounts).when(this.driverAccountService).getAllNotDeletedDriverAccounts();
+        doReturn(driverAccounts).when(this.driverAccountService).getAllDriverAccounts(false);
 
         //when
         ResponseEntity<List<DriverAccount>> responseEntity =
-                driverAccountController.getAllNotDeletedDriverAccounts();
+                driverAccountController.getAllDriverAccounts(false);
 
         //then
         assertNotNull(responseEntity);

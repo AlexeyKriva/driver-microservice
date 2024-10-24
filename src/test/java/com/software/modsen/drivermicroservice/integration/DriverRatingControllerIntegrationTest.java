@@ -146,7 +146,7 @@ public class DriverRatingControllerIntegrationTest extends TestconteinersConfig 
             driverService.saveDriver(car.getId(), drivers.get(i));
         }
 
-        MvcResult mvcResult = mockMvc.perform(get("/api/driver/rating")
+        MvcResult mvcResult = mockMvc.perform(get("/api/drivers/ratings?includeDeleted=true")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -175,7 +175,7 @@ public class DriverRatingControllerIntegrationTest extends TestconteinersConfig 
             driverService.saveDriver(car.getId(), drivers.get(i));
         }
 
-        MvcResult mvcResult = mockMvc.perform(get("/api/driver/rating/not-deleted")
+        MvcResult mvcResult = mockMvc.perform(get("/api/drivers/ratings?includeDeleted=false")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -203,7 +203,7 @@ public class DriverRatingControllerIntegrationTest extends TestconteinersConfig 
         driver = driverService.saveDriver(car.getId(), driver);
         DriverRating driverRating = driverRatingRepository.findByDriverId(driver.getId()).get();
 
-        MvcResult mvcResult = mockMvc.perform(get("/api/driver/rating/" + driverRating.getId())
+        MvcResult mvcResult = mockMvc.perform(get("/api/drivers/ratings/" + driverRating.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -228,8 +228,8 @@ public class DriverRatingControllerIntegrationTest extends TestconteinersConfig 
         Driver driver = defaultDrivers().get(1);
         driver = driverService.saveDriver(car.getId(), driver);
 
-        MvcResult mvcResult = mockMvc.perform(get("/api/driver/rating/" + driver.getId() +
-                        "/by-driver")
+        MvcResult mvcResult = mockMvc.perform(get("/api/drivers/" + driver.getId() +
+                        "/ratings")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -262,7 +262,7 @@ public class DriverRatingControllerIntegrationTest extends TestconteinersConfig 
         driver = driverService.saveDriver(car.getId(), driver);
         DriverRating driverRating = driverRatingRepository.findByDriverId(driver.getId()).get();
 
-        MvcResult mvcResult = mockMvc.perform(put("/api/driver/rating/" + driverRating.getId())
+        MvcResult mvcResult = mockMvc.perform(put("/api/drivers/ratings/" + driverRating.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(driverRatingDto))
                 .andExpect(status().isOk())
@@ -289,7 +289,7 @@ public class DriverRatingControllerIntegrationTest extends TestconteinersConfig 
         driver = driverService.saveDriver(car.getId(), driver);
         DriverRating driverRating = driverRatingRepository.findByDriverId(driver.getId()).get();
 
-        MvcResult mvcResult = mockMvc.perform(patch("/api/driver/rating/" + driverRating.getId())
+        MvcResult mvcResult = mockMvc.perform(patch("/api/drivers/ratings/" + driverRating.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(driverRatingDto))
                 .andExpect(status().isOk())

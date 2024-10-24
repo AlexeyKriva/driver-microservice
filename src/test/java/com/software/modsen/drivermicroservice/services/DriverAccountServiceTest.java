@@ -66,7 +66,7 @@ public class DriverAccountServiceTest {
         doReturn(driverAccounts).when(driverAccountRepository).findAll();
 
         //when
-        List<DriverAccount> driversAccountsFromDb = driverAccountService.getAllDriverAccounts();
+        List<DriverAccount> driversAccountsFromDb = driverAccountService.getAllDriverAccounts(true);
 
         //then
         assertNotNull(driversAccountsFromDb);
@@ -85,7 +85,7 @@ public class DriverAccountServiceTest {
                         false);
 
         //when
-        List<DriverAccount> driverAccountsFromDb = driverAccountService.getAllNotDeletedDriverAccounts();
+        List<DriverAccount> driverAccountsFromDb = driverAccountService.getAllDriverAccounts(false);
 
         //then
         assertNotNull(driverAccountsFromDb);

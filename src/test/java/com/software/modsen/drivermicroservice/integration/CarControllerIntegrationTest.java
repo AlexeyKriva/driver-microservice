@@ -80,7 +80,7 @@ public class CarControllerIntegrationTest extends TestconteinersConfig {
             carService.saveCar(car);
         }
 
-        MvcResult mvcResult = mockMvc.perform(get("/api/car")
+        MvcResult mvcResult = mockMvc.perform(get("/api/cars?includeDeleted=true")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -114,7 +114,7 @@ public class CarControllerIntegrationTest extends TestconteinersConfig {
             carService.saveCar(car);
         }
 
-        MvcResult mvcResult = mockMvc.perform(get("/api/car/not-deleted")
+        MvcResult mvcResult = mockMvc.perform(get("/api/cars?includeDeleted=false")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -146,7 +146,7 @@ public class CarControllerIntegrationTest extends TestconteinersConfig {
         Car car = defaultCars().get(0);
         carService.saveCar(car);
 
-        MvcResult mvcResult = mockMvc.perform(get("/api/car/" + car.getId())
+        MvcResult mvcResult = mockMvc.perform(get("/api/cars/" + car.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -175,7 +175,7 @@ public class CarControllerIntegrationTest extends TestconteinersConfig {
     @SneakyThrows
     void saveCarTest_ReturnsCar() {
         //given
-        MvcResult mvcResult = mockMvc.perform(post("/api/car")
+        MvcResult mvcResult = mockMvc.perform(post("/api/cars")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(carDto))
                 .andExpect(status().isOk())
@@ -207,7 +207,7 @@ public class CarControllerIntegrationTest extends TestconteinersConfig {
         Car car = defaultCars().get(1);
         carService.saveCar(car);
 
-        MvcResult mvcResult = mockMvc.perform(put("/api/car/" + car.getId())
+        MvcResult mvcResult = mockMvc.perform(put("/api/cars/" + car.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(carUpdateDto))
                 .andExpect(status().isOk())
@@ -240,7 +240,7 @@ public class CarControllerIntegrationTest extends TestconteinersConfig {
         Car car = defaultCars().get(0);
         carService.saveCar(car);
 
-        MvcResult mvcResult = mockMvc.perform(patch("/api/car/" + car.getId())
+        MvcResult mvcResult = mockMvc.perform(patch("/api/cars/" + car.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(carPatchDto))
                 .andExpect(status().isOk())
@@ -266,8 +266,7 @@ public class CarControllerIntegrationTest extends TestconteinersConfig {
         Car car = defaultCars().get(3);
         carService.saveCar(car);
 
-        MvcResult mvcResult = mockMvc.perform(post("/api/car/" + car.getId() +
-                        "/soft-delete")
+        MvcResult mvcResult = mockMvc.perform(delete("/api/cars/" + car.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -291,8 +290,8 @@ public class CarControllerIntegrationTest extends TestconteinersConfig {
         Car car = defaultCars().get(2);
         carService.saveCar(car);
 
-        MvcResult mvcResult = mockMvc.perform(post("/api/car/" + car.getId() +
-                        "/soft-recovery")
+        MvcResult mvcResult = mockMvc.perform(post("/api/carsx3/" + car.getId() +
+                        "/restore")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();

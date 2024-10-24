@@ -144,7 +144,7 @@ public class DriverAccountControllerIntegrationTest extends TestconteinersConfig
             driverService.saveDriver(car.getId(), drivers.get(i));
         }
 
-        MvcResult mvcResult = mockMvc.perform(get("/api/driver/account")
+        MvcResult mvcResult = mockMvc.perform(get("/api/drivers/accounts?includeDeleted=true")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -173,7 +173,7 @@ public class DriverAccountControllerIntegrationTest extends TestconteinersConfig
             driverService.saveDriver(car.getId(), drivers.get(i));
         }
 
-        MvcResult mvcResult = mockMvc.perform(get("/api/driver/account/not-deleted")
+        MvcResult mvcResult = mockMvc.perform(get("/api/drivers/accounts?includeDeleted=false")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -201,7 +201,7 @@ public class DriverAccountControllerIntegrationTest extends TestconteinersConfig
         driver = driverService.saveDriver(car.getId(), driver);
         DriverAccount driverAccount = driverAccountRepository.findByDriverId(driver.getId()).get();
 
-        MvcResult mvcResult = mockMvc.perform(get("/api/driver/account/" + driverAccount.getId())
+        MvcResult mvcResult = mockMvc.perform(get("/api/drivers/accounts/" + driverAccount.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -226,8 +226,8 @@ public class DriverAccountControllerIntegrationTest extends TestconteinersConfig
         Driver driver = defaultDrivers().get(1);
         driver = driverService.saveDriver(car.getId(), driver);
 
-        MvcResult mvcResult = mockMvc.perform(get("/api/driver/account/" + driver.getId() +
-                        "/by-driver")
+        MvcResult mvcResult = mockMvc.perform(get("/api/drivers/" + driver.getId() +
+                        "/accounts")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -266,8 +266,8 @@ public class DriverAccountControllerIntegrationTest extends TestconteinersConfig
         Driver driver = defaultDrivers().get(0);
         driver = driverService.saveDriver(car.getId(), driver);
 
-        MvcResult mvcResult = mockMvc.perform(put("/api/driver/account/" + driver.getId() +
-                        "/increase")
+        MvcResult mvcResult = mockMvc.perform(put("/api/drivers/" + driver.getId() +
+                        "/accounts/up")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(passengerAccountBalanceUpDto))
                 .andExpect(status().isOk())
@@ -293,13 +293,13 @@ public class DriverAccountControllerIntegrationTest extends TestconteinersConfig
         Driver driver = defaultDrivers().get(1);
         driver = driverService.saveDriver(car.getId(), driver);
 
-        mockMvc.perform(put("/api/driver/account/" + driver.getId() +
-                "/increase")
+        mockMvc.perform(put("/api/drivers/" + driver.getId() +
+                "/accounts/up")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(passengerAccountBalanceUpDto));
 
-        MvcResult mvcResult = mockMvc.perform(put("/api/driver/account/" + driver.getId() +
-                        "/cancel")
+        MvcResult mvcResult = mockMvc.perform(put("/api/drivers/" + driver.getId() +
+                        "/accounts/down")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(passengerAccountBalanceDownDto))
                 .andExpect(status().isOk())

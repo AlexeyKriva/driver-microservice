@@ -16,30 +16,26 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(value = "/api/driver/account", produces = "application/json")
+@RequestMapping(value = "/api/drivers", produces = "application/json")
 @AllArgsConstructor
 @Tag(name = "Driver account controller.", description = "Allows to interact with driver accounts.")
 public class DriverAccountController {
     private DriverAccountService driverAccountService;
     private final DriverAccountMapper DRIVER_ACCOUNT_MAPPER = DriverAccountMapper.INSTANCE;
 
-    @GetMapping
+    @GetMapping("/accounts")
     @Operation(
             description = "Allows to get all driver accounts."
     )
-    public ResponseEntity<List<DriverAccount>> getAllDriverAccounts() {
-        return ResponseEntity.ok(driverAccountService.getAllDriverAccounts());
+    public ResponseEntity<List<DriverAccount>> getAllDriverAccounts(
+            @RequestParam(name = "includeDeleted",
+                    required = false, defaultValue = "true")
+            boolean includeDeleted
+    ) {
+        return ResponseEntity.ok(driverAccountService.getAllDriverAccounts(includeDeleted));
     }
 
-    @GetMapping("/not-deleted")
-    @Operation(
-            description = "Allows to get all not deleted driver accounts."
-    )
-    public ResponseEntity<List<DriverAccount>> getAllNotDeletedDriverAccounts() {
-        return ResponseEntity.ok(driverAccountService.getAllNotDeletedDriverAccounts());
-    }
-
-    @GetMapping("/{id}")
+    @GetMapping("/accounts/{id}")
     @Operation(
             description = "Allows to get not deleted driver account by id."
     )
@@ -49,7 +45,7 @@ public class DriverAccountController {
         return ResponseEntity.ok(driverAccountService.getDriverAccountById(id));
     }
 
-    @GetMapping("/{driver_id}/by-driver")
+    @GetMapping("/{driver_id}/accounts")
     @Operation(
             description = "Allows to get not deleted driver account by driver id."
     )
@@ -58,7 +54,7 @@ public class DriverAccountController {
         return ResponseEntity.ok(driverAccountService.getDriverAccountByDriverId(driverId));
     }
 
-    @PutMapping("/{driver_id}/increase")
+    @PutMapping("/{driver_id}/accounts/up")
     @Operation(
             description = "Allows to increase driver balance by driver id."
     )
@@ -71,7 +67,7 @@ public class DriverAccountController {
                 DRIVER_ACCOUNT_MAPPER.fromDriverAccountIncreaseDtoToDriverAccount(driverAccountBalanceUpDto)));
     }
 
-    @PutMapping("/{driver_id}/cancel")
+    @PutMapping("/{driver_id}/accounts/down")
     @Operation(
             description = "Allows to cancel driver balance by driver id."
     )

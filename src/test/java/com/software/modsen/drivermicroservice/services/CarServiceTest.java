@@ -47,7 +47,7 @@ public class CarServiceTest {
         doReturn(cars).when(carRepository).findAll();
 
         //when
-        List<Car> carsFromDb = carService.getAllCars();
+        List<Car> carsFromDb = carService.getAllCars(true);
 
         //then
         assertNotNull(carsFromDb);
@@ -63,7 +63,7 @@ public class CarServiceTest {
         doReturn(notDeletedCars).when(carRepository).findAll();
 
         //when
-        List<Car> carsFromDb = carService.getAllNotDeletedCars();
+        List<Car> carsFromDb = carService.getAllCars(false);
 
         //then
         assertNotNull(carsFromDb);

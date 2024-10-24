@@ -41,15 +41,14 @@ public class DriverService {
     }
 
     @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
-    public List<Driver> getAllDrivers() {
-        return driverRepository.findAll();
-    }
-
-    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
-    public List<Driver> getAllNotDeletedDrivers() {
-        return driverRepository.findAll().stream()
-                .filter(driver -> !driver.isDeleted())
-                .collect(Collectors.toList());
+    public List<Driver> getAllDrivers(boolean includeDeleted) {
+        if (includeDeleted) {
+            return driverRepository.findAll();
+        } else {
+            return driverRepository.findAll().stream()
+                    .filter(driver -> !driver.isDeleted())
+                    .collect(Collectors.toList());
+        }
     }
 
     @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
