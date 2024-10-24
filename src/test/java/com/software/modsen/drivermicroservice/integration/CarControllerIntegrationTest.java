@@ -290,7 +290,7 @@ public class CarControllerIntegrationTest extends TestconteinersConfig {
         Car car = defaultCars().get(2);
         carService.saveCar(car);
 
-        MvcResult mvcResult = mockMvc.perform(post("/api/carsx3/" + car.getId() +
+        MvcResult mvcResult = mockMvc.perform(post("/api/cars/" + car.getId() +
                         "/restore")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
