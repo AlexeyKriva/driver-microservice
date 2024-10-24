@@ -20,7 +20,7 @@ public interface DriverRatingMapper {
                                                        @MappingTarget DriverRating driverRating) {
         Float newDriverRating = (driverRating.getRatingValue()
                 * Float.valueOf(driverRating.getNumberOfRatings())
-                + Float.valueOf(driverRatingMessage.ratingValue()))
+                + Float.valueOf(driverRatingMessage.getRatingValue()))
                 / (float) (driverRating.getNumberOfRatings() + 1);
         driverRating.setRatingValue(newDriverRating);
         driverRating.setNumberOfRatings(driverRating.getNumberOfRatings() + 1);

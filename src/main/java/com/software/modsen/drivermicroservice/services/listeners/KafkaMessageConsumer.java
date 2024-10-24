@@ -32,12 +32,12 @@ public class KafkaMessageConsumer {
     @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     @Transactional
     public DriverRating updateDriverRating(DriverRatingMessage driverRatingMessage) {
-        Optional<Driver> driverFromDb = driverRepository.findById(driverRatingMessage.driverId());
+        Optional<Driver> driverFromDb = driverRepository.findById(driverRatingMessage.getDriverId());
 
         if (driverFromDb.isPresent()) {
             if (!driverFromDb.get().isDeleted()) {
                 Optional<DriverRating> driverRatingFromDb = driverRatingRepository
-                        .findByDriverId(driverRatingMessage.driverId());
+                        .findByDriverId(driverRatingMessage.getDriverId());
 
                 if (driverRatingFromDb.isPresent()) {
                     DriverRating updatingDriverRating = driverRatingFromDb.get();
