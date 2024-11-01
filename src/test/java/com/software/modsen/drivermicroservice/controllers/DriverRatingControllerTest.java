@@ -63,11 +63,11 @@ public class DriverRatingControllerTest {
     void getAllDriverRatingsTest_ReturnsValidResponseEntity() {
         //given
         List<DriverRating> driverRatings = initDriverRatings();
-        doReturn(driverRatings).when(this.driverRatingService).getAllDriverRatings();
+        doReturn(driverRatings).when(this.driverRatingService).getAllDriverRatings(true);
 
         //when
         ResponseEntity<List<DriverRating>> responseEntity = driverRatingControllerRatingController
-                .getAllDriverRatings();
+                .getAllDriverRatings(true);
 
         //then
         assertNotNull(responseEntity);
@@ -80,11 +80,11 @@ public class DriverRatingControllerTest {
     void getAllNotDeletedDriverRatingsRatingsTest_ReturnsValidResponseEntity() {
         //given
         List<DriverRating> driverRatings = initDriverRatings();
-        doReturn(driverRatings).when(this.driverRatingService).getAllNotDeletedDriverRatings();
+        doReturn(driverRatings).when(this.driverRatingService).getAllDriverRatings(false);
 
         //when
         ResponseEntity<List<DriverRating>> responseEntity =
-                driverRatingControllerRatingController.getAllNotDeletedDriverRatings();
+                driverRatingControllerRatingController.getAllDriverRatings(false);
 
         //then
         assertNotNull(responseEntity);

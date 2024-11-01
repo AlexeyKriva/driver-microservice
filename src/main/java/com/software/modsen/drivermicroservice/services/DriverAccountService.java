@@ -28,16 +28,15 @@ public class DriverAccountService {
     private DriverRepository driverRepository;
 
     @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
-    public List<DriverAccount> getAllDriverAccounts() {
-        return driverAccountRepository.findAll();
-    }
-
-    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
-    public List<DriverAccount> getAllNotDeletedDriverAccounts() {
-        return driverAccountRepository.findAll().stream()
-                .filter(driverAccount -> driverRepository.existsByIdAndIsDeleted(
-                        driverAccount.getDriver().getId(), false))
-                .collect(Collectors.toList());
+    public List<DriverAccount> getAllDriverAccounts(boolean includeDeleted) {
+        if (includeDeleted) {
+            return driverAccountRepository.findAll();
+        } else {
+            return driverAccountRepository.findAll().stream()
+                    .filter(driverAccount -> driverRepository.existsByIdAndIsDeleted(
+                            driverAccount.getDriver().getId(), false))
+                    .collect(Collectors.toList());
+        }
     }
 
     @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))

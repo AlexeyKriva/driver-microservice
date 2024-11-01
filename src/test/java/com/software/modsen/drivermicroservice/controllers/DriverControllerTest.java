@@ -56,10 +56,10 @@ public class DriverControllerTest {
     void getAllDriversTest_ReturnsValidResponseEntity() {
         //given
         List<Driver> driversFromDb = initDrivers();
-        doReturn(driversFromDb).when(this.driverService).getAllDrivers();
+        doReturn(driversFromDb).when(this.driverService).getAllDrivers(true);
 
         //when
-        ResponseEntity<List<Driver>> responseEntity = driverController.getAllDrivers();
+        ResponseEntity<List<Driver>> responseEntity = driverController.getAllDrivers(true);
 
         //then
         assertNotNull(responseEntity);
@@ -72,10 +72,10 @@ public class DriverControllerTest {
     void getAllNotDeletedDriversTest_ReturnsValidResponseEntity() {
         //given
         List<Driver> driversFromDb = initDrivers();
-        doReturn(driversFromDb).when(this.driverService).getAllNotDeletedDrivers();
+        doReturn(driversFromDb).when(this.driverService).getAllDrivers(false);
 
         //when
-        ResponseEntity<List<Driver>> responseEntity = driverController.getAllNotDeletedDrivers();
+        ResponseEntity<List<Driver>> responseEntity = driverController.getAllDrivers(false);
 
         //then
         assertNotNull(responseEntity);

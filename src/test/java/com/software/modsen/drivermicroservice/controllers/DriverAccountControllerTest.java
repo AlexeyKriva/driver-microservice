@@ -7,8 +7,8 @@ import com.software.modsen.drivermicroservice.entities.driver.Driver;
 import com.software.modsen.drivermicroservice.entities.driver.Sex;
 import com.software.modsen.drivermicroservice.entities.driver.account.Currency;
 import com.software.modsen.drivermicroservice.entities.driver.account.DriverAccount;
-import com.software.modsen.drivermicroservice.entities.driver.account.DriverAccountIncreaseDto;
-import com.software.modsen.drivermicroservice.entities.driver.account.DriverAccountCancelDto;
+import com.software.modsen.drivermicroservice.entities.driver.account.DriverAccountBalanceUpDto;
+import com.software.modsen.drivermicroservice.entities.driver.account.DriverAccountBalanceDownDto;
 import com.software.modsen.drivermicroservice.mappers.DriverAccountMapper;
 import com.software.modsen.drivermicroservice.services.DriverAccountService;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,10 +64,11 @@ public class DriverAccountControllerTest {
     void getAllDriverAccountsTest_ReturnsValidResponseEntity() {
         //given
         List<DriverAccount> driverAccounts = initDriverAccounts();
-        doReturn(driverAccounts).when(this.driverAccountService).getAllDriverAccounts();
+        doReturn(driverAccounts).when(this.driverAccountService).getAllDriverAccounts(true);
 
         //when
-        ResponseEntity<List<DriverAccount>> responseEntity = driverAccountController.getAllDriverAccounts();
+        ResponseEntity<List<DriverAccount>> responseEntity = driverAccountController
+                .getAllDriverAccounts(true);
 
         //then
         assertNotNull(responseEntity);
@@ -80,11 +81,11 @@ public class DriverAccountControllerTest {
     void getAllNotDeletedDriverAccountsTest_ReturnsValidResponseEntity() {
         //given
         List<DriverAccount> driverAccounts = initDriverAccounts();
-        doReturn(driverAccounts).when(this.driverAccountService).getAllNotDeletedDriverAccounts();
+        doReturn(driverAccounts).when(this.driverAccountService).getAllDriverAccounts(false);
 
         //when
         ResponseEntity<List<DriverAccount>> responseEntity =
-                driverAccountController.getAllNotDeletedDriverAccounts();
+                driverAccountController.getAllDriverAccounts(false);
 
         //then
         assertNotNull(responseEntity);
@@ -141,7 +142,7 @@ public class DriverAccountControllerTest {
     void increaseBalanceByDriverIdTest_ReturnsValidResponseEntity() {
         //given
         int driverId = 1;
-        DriverAccountIncreaseDto driverAccountIncreaseDto = new DriverAccountIncreaseDto(1000f,
+        DriverAccountBalanceUpDto driverAccountBalanceUpDto = new DriverAccountBalanceUpDto(1000f,
                 Currency.BYN);
         DriverAccount driverAccount = new DriverAccount(1,
                 new Driver(driverId, "Alex", "alex@gmail.com",
@@ -149,11 +150,11 @@ public class DriverAccountControllerTest {
                         "1234AB-1", false), false),
                 1100f, Currency.BYN);
         doReturn(driverAccount).when(this.driverAccountService).increaseBalance(driverId,
-                driverAccountMapper.fromDriverAccountIncreaseDtoToDriverAccount(driverAccountIncreaseDto));
+                driverAccountMapper.fromDriverAccountIncreaseDtoToDriverAccount(driverAccountBalanceUpDto));
 
         //when
         ResponseEntity<DriverAccount> responseEntity = driverAccountController
-                .increaseBalanceByDriverId(driverId, driverAccountIncreaseDto);
+                .increaseBalanceByDriverId(driverId, driverAccountBalanceUpDto);
 
         //then
         assertNotNull(responseEntity);
@@ -164,7 +165,7 @@ public class DriverAccountControllerTest {
         assertEquals(driverAccount.getBalance(), responseEntity.getBody().getBalance());
         assertEquals(driverAccount.getCurrency(), responseEntity.getBody().getCurrency());
         verify(this.driverAccountService).increaseBalance(driverId,
-                driverAccountMapper.fromDriverAccountIncreaseDtoToDriverAccount(driverAccountIncreaseDto));
+                driverAccountMapper.fromDriverAccountIncreaseDtoToDriverAccount(driverAccountBalanceUpDto));
     }
 
     @Test
@@ -172,7 +173,7 @@ public class DriverAccountControllerTest {
     void cancelBalanceByDriverIdTest_ReturnsValidResponseEntity() {
         //given
         int driverId = 1;
-        DriverAccountCancelDto driverAccountCancelDto = new DriverAccountCancelDto(50f,
+        DriverAccountBalanceDownDto driverAccountBalanceDownDto = new DriverAccountBalanceDownDto(50f,
                 Currency.BYN);
         DriverAccount driverAccount = new DriverAccount(1,
                 new Driver(driverId, "Alex", "alex@gmail.com",
@@ -180,11 +181,11 @@ public class DriverAccountControllerTest {
                         "1234AB-1", false), false),
                 100f, Currency.BYN);
         doReturn(driverAccount).when(this.driverAccountService).cancelBalance(driverId,
-                driverAccountMapper.fromDriverAccountCancelDtoToDriverAccount(driverAccountCancelDto));
+                driverAccountMapper.fromDriverAccountCancelDtoToDriverAccount(driverAccountBalanceDownDto));
 
         //when
         ResponseEntity<DriverAccount> responseEntity = driverAccountController
-                .cancelBalanceByDriverId(driverId, driverAccountCancelDto);
+                .cancelBalanceByDriverId(driverId, driverAccountBalanceDownDto);
 
         //then
         assertNotNull(responseEntity);
@@ -195,6 +196,6 @@ public class DriverAccountControllerTest {
         assertEquals(driverAccount.getBalance(), responseEntity.getBody().getBalance());
         assertEquals(driverAccount.getCurrency(), responseEntity.getBody().getCurrency());
         verify(this.driverAccountService).cancelBalance(driverId,
-                driverAccountMapper.fromDriverAccountCancelDtoToDriverAccount(driverAccountCancelDto));
+                driverAccountMapper.fromDriverAccountCancelDtoToDriverAccount(driverAccountBalanceDownDto));
     }
 }

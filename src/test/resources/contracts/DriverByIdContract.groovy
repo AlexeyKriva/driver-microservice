@@ -6,7 +6,7 @@ Contract.make {
     description "Should return driver response entity"
     request {
         method 'GET'
-        url '/api/driver/1'
+        url '/api/drivers/1'
         headers {
             header('Content-Type', 'application/vnd.fraud.v1+json')
         }

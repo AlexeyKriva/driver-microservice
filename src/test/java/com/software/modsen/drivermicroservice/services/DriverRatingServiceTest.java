@@ -64,7 +64,7 @@ public class DriverRatingServiceTest {
         doReturn(driverRatings).when(driverRatingRepository).findAll();
 
         //when
-        List<DriverRating> driversRatingsFromDb = driverRatingService.getAllDriverRatings();
+        List<DriverRating> driversRatingsFromDb = driverRatingService.getAllDriverRatings(true);
 
         //then
         assertNotNull(driversRatingsFromDb);
@@ -84,7 +84,7 @@ public class DriverRatingServiceTest {
                         false);
 
         //when
-        List<DriverRating> passengerRatingsFromDb = driverRatingService.getAllNotDeletedDriverRatings();
+        List<DriverRating> passengerRatingsFromDb = driverRatingService.getAllDriverRatings(false);
 
         //then
         assertNotNull(passengerRatingsFromDb);
