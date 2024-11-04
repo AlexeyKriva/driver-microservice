@@ -30,6 +30,29 @@ public class DriverService {
     private DriverSubject driverSubject;
 
     @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    public List<Driver> getAllDrivers(boolean includeDeleted, String name) {
+        if (name != null) {
+            return List.of(getDriverByName(name));
+        } else if (includeDeleted) {
+            return driverRepository.findAll();
+        } else {
+            return driverRepository.findAll().stream()
+                    .filter(driver -> !driver.isDeleted())
+                    .collect(Collectors.toList());
+        }
+    }
+
+    public Driver getDriverByName(String name) {
+        Optional<Driver> passengerFromDb = driverRepository.findByName(name);
+
+        if (passengerFromDb.isPresent()) {
+            return passengerFromDb.get();
+        }
+
+        throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
+    }
+
+    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public Driver getDriverById(long id) {
         Optional<Driver> driverFromDb = driverRepository.findById(id);
 
@@ -38,17 +61,6 @@ public class DriverService {
         }
 
         throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
-    }
-
-    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
-    public List<Driver> getAllDrivers(boolean includeDeleted) {
-        if (includeDeleted) {
-            return driverRepository.findAll();
-        } else {
-            return driverRepository.findAll().stream()
-                    .filter(driver -> !driver.isDeleted())
-                    .collect(Collectors.toList());
-        }
     }
 
     @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")

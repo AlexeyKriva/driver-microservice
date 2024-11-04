@@ -29,9 +29,11 @@ public class DriverController {
     public ResponseEntity<List<Driver>> getAllDrivers(
             @RequestParam(name = "includeDeleted", required = false,
                     defaultValue = "true")
-            boolean includeDeleted
+            boolean includeDeleted,
+            @RequestParam(name = "name",
+                    required = false) String name
     ) {
-        return ResponseEntity.ok(driverService.getAllDrivers(includeDeleted));
+        return ResponseEntity.ok(driverService.getAllDrivers(includeDeleted, name));
     }
 
     @GetMapping("/{id}")
