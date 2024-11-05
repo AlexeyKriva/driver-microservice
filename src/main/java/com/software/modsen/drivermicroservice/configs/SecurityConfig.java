@@ -33,7 +33,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/drivers").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/drivers/accounts",
                                 "/api/drivers/ratings").hasRole("ADMIN")
-                        .anyRequest().hasAnyRole("DRIVER", "ADMIN")
+                        .anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptionHandling -> exceptionHandling
                         .authenticationEntryPoint(authEntryPoint)
