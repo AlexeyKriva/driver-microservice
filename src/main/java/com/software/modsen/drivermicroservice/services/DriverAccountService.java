@@ -27,7 +27,6 @@ public class DriverAccountService {
     private DriverAccountRepository driverAccountRepository;
     private DriverRepository driverRepository;
 
-    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public List<DriverAccount> getAllDriverAccounts(boolean includeDeleted) {
         if (includeDeleted) {
             return driverAccountRepository.findAll();
@@ -39,7 +38,6 @@ public class DriverAccountService {
         }
     }
 
-    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public DriverAccount getDriverAccountById(long id) {
         Optional<DriverAccount> driverAccountFromDb = driverAccountRepository.findById(id);
 
@@ -50,7 +48,6 @@ public class DriverAccountService {
         throw new DriverAccountNotFoundException(DRIVER_ACCOUNT_NOT_FOUND_MESSAGE);
     }
 
-    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public DriverAccount getDriverAccountByDriverId(long driverId) {
         Optional<DriverAccount> driverAccountFromDb = driverAccountRepository.findByDriverId(driverId);
 

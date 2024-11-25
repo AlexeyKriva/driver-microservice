@@ -30,7 +30,6 @@ public class DriverRatingService {
     private DriverRatingRepository driverRatingRepository;
     private DriverRepository driverRepository;
 
-    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public List<DriverRating> getAllDriverRatings(boolean includeDeleted) {
         if (includeDeleted) {
             return driverRatingRepository.findAll();
@@ -55,7 +54,6 @@ public class DriverRatingService {
         }
     }
 
-    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public DriverRating getDriverRatingById(long id) {
         Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findById(id);
 
@@ -66,7 +64,6 @@ public class DriverRatingService {
         throw new DriverNotFoundException(DRIVER_RATING_NOT_FOUND_MESSAGE);
     }
 
-    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public DriverRating getDriverRatingByDriverId(long driverId) {
         Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findByDriverId(driverId);
 
@@ -101,7 +98,6 @@ public class DriverRatingService {
         throw new DriverRatingNotFoundException(DRIVER_RATING_NOT_FOUND_MESSAGE);
     }
 
-    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
     public DriverRating patchDriverRatingById(long id,
                                               DriverRating updatingDriverRating) {

@@ -9,7 +9,6 @@ import com.software.modsen.drivermicroservice.mappers.DriverRatingMapper;
 import com.software.modsen.drivermicroservice.repositories.DriverRatingRepository;
 import com.software.modsen.drivermicroservice.repositories.DriverRepository;
 import lombok.AllArgsConstructor;
-import org.springframework.dao.DataAccessException;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -29,7 +28,7 @@ public class KafkaMessageConsumer {
     private final DriverRatingMapper DRIVER_RATING_MAPPER = DriverRatingMapper.INSTANCE;
 
     @KafkaListener(topics = "driver-create-rating-topic", groupId = "driver-ratings")
-    @Retryable(retryFor = {DataAccessException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    @Retryable(maxAttempts = 5, backoff = @Backoff(delay = 500))
     @Transactional
     public DriverRating updateDriverRating(DriverRatingMessage driverRatingMessage) {
         Optional<Driver> driverFromDb = driverRepository.findById(driverRatingMessage.getDriverId());

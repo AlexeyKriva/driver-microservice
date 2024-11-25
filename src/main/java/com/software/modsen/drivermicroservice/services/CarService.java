@@ -26,7 +26,6 @@ import static com.software.modsen.drivermicroservice.exceptions.ErrorMessage.*;
 public class CarService {
     private CarRepository carRepository;
 
-    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public Car getCarById(long id) {
         Optional<Car> carFromDb = carRepository.findById(id);
 
@@ -41,7 +40,6 @@ public class CarService {
         throw new CarNotFoundException(CAR_NOT_FOUND_MESSAGE);
     }
 
-    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public List<Car> getAllCars(boolean includeDeleted) {
         if (includeDeleted) {
             return carRepository.findAll();
@@ -52,7 +50,6 @@ public class CarService {
         }
     }
 
-    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
     public Car saveCar(Car newCar) {
         return carRepository.save(newCar);
@@ -76,7 +73,6 @@ public class CarService {
         throw new CarNotFoundException(CAR_NOT_FOUND_MESSAGE);
     }
 
-    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
     public Car patchCar(long id, Car updatingCar) {
         Optional<Car> carFromDb = carRepository.findById(id);
@@ -103,7 +99,6 @@ public class CarService {
         throw new CarNotFoundException(CAR_NOT_FOUND_MESSAGE);
     }
 
-    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
     public Car softDeleteCarById(long id) {
         Optional<Car> carFromDb = carRepository.findById(id);
@@ -116,7 +111,6 @@ public class CarService {
                 .orElseThrow(() -> new CarNotFoundException(CAR_NOT_FOUND_MESSAGE));
     }
 
-    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
     public Car softRecoveryCarById(long id) {
         Optional<Car> carFromDb = carRepository.findById(id);

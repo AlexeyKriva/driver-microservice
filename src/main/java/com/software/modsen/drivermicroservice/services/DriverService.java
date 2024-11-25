@@ -29,7 +29,6 @@ public class DriverService {
     private CarRepository carRepository;
     private DriverSubject driverSubject;
 
-    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public List<Driver> getAllDrivers(boolean includeDeleted, String name) {
         if (name != null) {
             return List.of(getDriverByName(name));
@@ -64,7 +63,6 @@ public class DriverService {
         throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
     }
 
-    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
     public Driver saveDriver(Long carId, Driver newDriver) {
         Optional<Car> carFromDb = carRepository.findById(carId);
@@ -106,7 +104,6 @@ public class DriverService {
         throw new CarNotFoundException(CAR_NOT_FOUND_MESSAGE);
     }
 
-    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
     public Driver patchDriver(long id, Long carId, Driver updatingDriver) {
         Optional<Driver> driverFromDb = driverRepository.findById(id);
@@ -155,7 +152,6 @@ public class DriverService {
         throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
     }
 
-    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
     public Driver softDeleteDriverById(long id) {
         Optional<Driver> driverFromDb = driverRepository.findById(id);
@@ -168,7 +164,6 @@ public class DriverService {
                 .orElseThrow(() -> new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE));
     }
 
-    @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
     public Driver softRecoveryDriverById(long id) {
         Optional<Driver> driverFromDb = driverRepository.findById(id);
