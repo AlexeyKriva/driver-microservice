@@ -30,11 +30,10 @@ public class SecurityConfig {
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt ->
                         jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
                 .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers(HttpMethod.POST, "/api/drivers").permitAll()
-//                        .requestMatchers(HttpMethod.GET, "/api/drivers/accounts",
-//                                "/api/drivers/ratings").hasRole("ADMIN")
-//                        .anyRequest().authenticated()
-                                .anyRequest().permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/drivers").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/drivers/accounts",
+                                "/api/drivers/ratings").hasRole("ADMIN")
+                        .anyRequest().authenticated()
 
                 )
                 .exceptionHandling(exceptionHandling -> exceptionHandling
