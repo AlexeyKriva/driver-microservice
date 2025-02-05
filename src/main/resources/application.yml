@@ -16,12 +16,21 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD:98479847}
     driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
 
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${KEYCLOAK_URI:http://localhost:8080/realms/cab-agg}
+  cache:
+    redis:
+      time-to-live: 10m
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+#  security:
+#    oauth2:
+#      resourceserver:
+#        jwt:
+#          issuer-uri: ${KEYCLOAK_URI:http://localhost:8080/realms/cab-agg}
+#
 eureka:
   client:
     service-url:
