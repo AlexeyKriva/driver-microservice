@@ -11,7 +11,7 @@ RUN mvn package -DskipTests
 
 FROM openjdk:17-jdk
 
-COPY /target/driver-microservice*.jar /driver/launch-driver.jar
+COPY /target/driver-microservice-0.0.1-SNAPSHOT.jar /driver/launch-driver.jar
 
 ENTRYPOINT ["java","-jar","/driver/launch-driver.jar"]
 

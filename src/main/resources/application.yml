@@ -16,21 +16,73 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD:98479847}
     driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
 
-  cache:
-    redis:
-      time-to-live: 10m
+#Redis sentinel
+#  data:
+#    redspring:
+  #  application:
+  #    name: driver-microservice
+  #
+  #  kafka:
+  #    consumer:
+  #      bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  #      group-id: driver-ratings
+  #
+  #  datasource:
+  #    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/driver-db}
+  #    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+  #    password: ${SPRING_DATASOURCE_PASSWORD:98479847}
+  #    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
+  #
+  #Redis sentinel
+#  data:
+#    redis:
+#      password: 1234
+#      sentinel:
+#        master: mymaster
+#        nodes:
+#          - 127.0.0.1:26379
+#          - 127.0.0.1:26380
+#          - 127.0.0.1:26381
+#      lettuce:
+#        shutdown-timeout: 200ms
 
+  #Redis cluster config
   data:
     redis:
-      host: localhost
-      port: 6379
+      cluster:
+        nodes:
+          - redis-1:6379
+          - redis-2:6379
+          - redis-3:6379
+          - redis-4:6379
+          - redis-5:6379
+          - redis-6:6379
+        max-redirects: 3
+
+  cache:
+    type: redis
+    redis:
+      cache-null-values: false
+      time-to-live: 100000
+      use-key-prefix: true
+
+    #Default config to connect Redis
+#    cache:
+#      redis:
+#        time-to-live: 10m
+#
+#  data:
+#    redis:
+#      host: localhost
+#      port: 6379
+
 
 #  security:
 #    oauth2:
 #      resourceserver:
 #        jwt:
 #          issuer-uri: ${KEYCLOAK_URI:http://localhost:8080/realms/cab-agg}
-#
+
 eureka:
   client:
     service-url:

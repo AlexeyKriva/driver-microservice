@@ -27,14 +27,14 @@ public class SecurityConfig {
     public SecurityFilterChain httpSecurity(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt ->
-                        jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
+//                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt ->
+//                        jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/api/drivers").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/drivers/accounts",
-                                "/api/drivers/ratings").hasRole("ADMIN")
-                        .anyRequest().authenticated()
-
+//                        .requestMatchers(HttpMethod.POST, "/api/drivers").permitAll()
+//                        .requestMatchers(HttpMethod.GET, "/api/drivers/accounts",
+//                                "/api/drivers/ratings").hasRole("ADMIN")
+//                        .anyRequest().authenticated()
+                                .anyRequest().permitAll()
                 )
                 .exceptionHandling(exceptionHandling -> exceptionHandling
                         .authenticationEntryPoint(authEntryPoint)

@@ -15,14 +15,14 @@ public class DriverAspect {
     @Pointcut("within(com.software.modsen.drivermicroservice.services.DriverService) && @annotation(org.springframework.transaction.annotation.Transactional)")
     public void aroundAnyTransactionalMethod() {}
 
-    @Around("aroundAnyTransactionalMethod()")
-    public Driver aroundAnyTransactionalMethodAdvice(ProceedingJoinPoint joinPoint) throws Throwable {
-        log.info("Transaction start!!!");
-
-        Driver driver = (Driver) joinPoint.proceed();
-
-        log.info("Transaction end!!!");
-
-        return driver;
-    }
+//    @Around("aroundAnyTransactionalMethod()")
+//    public Driver aroundAnyTransactionalMethodAdvice(ProceedingJoinPoint joinPoint) throws Throwable {
+//        log.info("Transaction start!!!");
+//
+//        Driver driver = (Driver) joinPoint.proceed();
+//
+//        log.info("Transaction end!!!");
+//
+//        return driver;
+//    }
 }

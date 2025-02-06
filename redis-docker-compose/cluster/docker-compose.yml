@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  redis-1:
+    image: redis
+    container_name: redis-1
+    networks:
+      - app-network
+    volumes:
+      - /Users/aliaksei/Desktop/modsen-trainship/driver-microservice/redis-docker-compose/cluster/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+
+  redis-2:
+    image: redis
+    container_name: redis-2
+    networks:
+      - app-network
+    volumes:
+      - /Users/aliaksei/Desktop/modsen-trainship/driver-microservice/redis-docker-compose/cluster/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+
+  redis-3:
+    image: redis
+    container_name: redis-3
+    networks:
+      - app-network
+    volumes:
+      - /Users/aliaksei/Desktop/modsen-trainship/driver-microservice/redis-docker-compose/cluster/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+
+  redis-4:
+    image: redis
+    container_name: redis-4
+    networks:
+      - app-network
+    volumes:
+      - /Users/aliaksei/Desktop/modsen-trainship/driver-microservice/redis-docker-compose/cluster/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+
+  redis-5:
+    image: redis
+    container_name: redis-5
+    networks:
+      - app-network
+    volumes:
+      - /Users/aliaksei/Desktop/modsen-trainship/driver-microservice/redis-docker-compose/cluster/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+
+  redis-6:
+    image: redis
+    container_name: redis-6
+    networks:
+      - app-network
+    volumes:
+      - /Users/aliaksei/Desktop/modsen-trainship/driver-microservice/redis-docker-compose/cluster/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+
+networks:
+  app-network:
+    driver: bridge
