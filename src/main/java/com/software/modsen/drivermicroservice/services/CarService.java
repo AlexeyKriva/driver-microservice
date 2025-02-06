@@ -8,6 +8,9 @@ import com.software.modsen.drivermicroservice.repositories.CarRepository;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.AllArgsConstructor;
 import org.postgresql.util.PSQLException;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
@@ -26,6 +29,7 @@ import static com.software.modsen.drivermicroservice.exceptions.ErrorMessage.*;
 public class CarService {
     private CarRepository carRepository;
 
+    @Cacheable(value = "CarService::getCarById", key = "#id")
     public Car getCarById(long id) {
         Optional<Car> carFromDb = carRepository.findById(id);
 
@@ -51,12 +55,14 @@ public class CarService {
     }
 
     @Transactional
+    @CachePut(value = "CarService::getCarById", key = "#newCar.id")
     public Car saveCar(Car newCar) {
         return carRepository.save(newCar);
     }
 
     @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
+    @CachePut(value = "CarService::getCarById", key = "#id")
     public Car updateCar(long id, Car updatingCar) {
         Optional<Car> carFromDb = carRepository.findById(id);
 
@@ -74,6 +80,7 @@ public class CarService {
     }
 
     @Transactional
+    @CachePut(value = "CarService::getCarById", key = "#id")
     public Car patchCar(long id, Car updatingCar) {
         Optional<Car> carFromDb = carRepository.findById(id);
 
@@ -100,6 +107,7 @@ public class CarService {
     }
 
     @Transactional
+    @CacheEvict(value = "CarService::getCarById", key = "#id")
     public Car softDeleteCarById(long id) {
         Optional<Car> carFromDb = carRepository.findById(id);
 

@@ -1,5 +1,7 @@
 package com.software.modsen.drivermicroservice.services;
 
+import com.software.modsen.drivermicroservice.annotations.CacheableMethod;
+import com.software.modsen.drivermicroservice.annotations.CacheableUpdateMethod;
 import com.software.modsen.drivermicroservice.entities.driver.Driver;
 import com.software.modsen.drivermicroservice.entities.driver.rating.DriverRating;
 import com.software.modsen.drivermicroservice.exceptions.DatabaseConnectionRefusedException;
@@ -10,17 +12,15 @@ import com.software.modsen.drivermicroservice.repositories.DriverRatingRepositor
 import com.software.modsen.drivermicroservice.repositories.DriverRepository;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.AllArgsConstructor;
-import org.postgresql.util.PSQLException;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static com.software.modsen.drivermicroservice.exceptions.ErrorMessage.*;
 
@@ -54,6 +54,7 @@ public class DriverRatingService {
         }
     }
 
+    @CacheableMethod(ttl = 15L)
     public DriverRating getDriverRatingById(long id) {
         Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findById(id);
 
@@ -64,6 +65,7 @@ public class DriverRatingService {
         throw new DriverNotFoundException(DRIVER_RATING_NOT_FOUND_MESSAGE);
     }
 
+    @CacheableMethod(ttl = 20L)
     public DriverRating getDriverRatingByDriverId(long driverId) {
         Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findByDriverId(driverId);
 
@@ -80,6 +82,7 @@ public class DriverRatingService {
 
     @CircuitBreaker(name = "simpleCircuitBreaker", fallbackMethod = "fallbackPostgresHandle")
     @Transactional
+    @CacheableUpdateMethod
     public DriverRating putDriverRatingById(long id, DriverRating updatingDriverRating) {
         Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findById(id);
 
@@ -99,6 +102,7 @@ public class DriverRatingService {
     }
 
     @Transactional
+    @CacheableUpdateMethod(ttl = 1L, timeUnit = TimeUnit.HOURS)
     public DriverRating patchDriverRatingById(long id,
                                               DriverRating updatingDriverRating) {
         Optional<DriverRating> driverRatingFromDb = driverRatingRepository.findById(id);

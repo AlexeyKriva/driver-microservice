@@ -7,13 +7,15 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Entity
 @Table(name = "driver_rating")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(description = "Driver rating entity.")
-public class DriverRating {
+public class DriverRating implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Schema(accessMode = Schema.AccessMode.READ_ONLY)
