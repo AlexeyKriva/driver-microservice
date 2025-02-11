@@ -4,28 +4,22 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                scripts {
-                    echo "Building project..."
-                    sh 'mvn clean install -DskipTests'
-                }
+                echo "Building project..."
+                sh 'mvn clean install -DskipTests'
             }
         }
 
         stage('Linter') {
             steps {
-                scripts {
-                    echo "Linter"
-                    sh 'mvn checkstyle:check'
-                }
+                echo "Linter"
+                sh 'mvn checkstyle:check'
             }
         }
 
         stage('Test') {
             steps {
-                scripts {
-                    echo "Rinning tests..."
-                    sh 'mvn test'
-                }
+                echo "Rinning tests..."
+                sh 'mvn test'
             }
         }
 
