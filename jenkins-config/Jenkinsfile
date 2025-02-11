@@ -4,20 +4,20 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                sh 'echo "Build step"'
+                echo "Build step"
             }
         }
 
         stage('Test') {
             steps {
-                sh 'echo "Running tests..."'
-                sh 'echo "Tests passed successfully"'
+                echo "Running tests..."
+                echo "Tests passed successfully"
             }
         }
 
         stage('Deploy') {
             steps {
-                sh 'echo "Deploy project"'
+                echo "Deploy project"
             }
         }
     }
