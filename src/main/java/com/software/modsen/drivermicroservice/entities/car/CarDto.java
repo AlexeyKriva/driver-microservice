@@ -5,8 +5,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
+import java.io.Serializable;
+
 @Schema(description = "Car entity.")
-public record CarDto(
+public record CarDto (
         @JsonProperty("color")
         @NotNull(message = "Color cannot be null.")
         CarColor color,

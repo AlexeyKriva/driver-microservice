@@ -1,5 +1,6 @@
 package com.software.modsen.drivermicroservice.services;
 
+import com.github.benmanes.caffeine.cache.Cache;
 import com.software.modsen.drivermicroservice.entities.driver.Driver;
 import com.software.modsen.drivermicroservice.entities.driver.account.DriverAccount;
 import com.software.modsen.drivermicroservice.exceptions.*;
@@ -27,6 +28,8 @@ public class DriverAccountService {
     private DriverAccountRepository driverAccountRepository;
     private DriverRepository driverRepository;
 
+    private Cache<String, DriverAccount> cache;
+
     public List<DriverAccount> getAllDriverAccounts(boolean includeDeleted) {
         if (includeDeleted) {
             return driverAccountRepository.findAll();
@@ -39,20 +42,34 @@ public class DriverAccountService {
     }
 
     public DriverAccount getDriverAccountById(long id) {
+        DriverAccount driverAccount = cache.getIfPresent("driverAccount:" + id);
+
+        if (driverAccount != null) {
+            return driverAccount;
+        }
+
         Optional<DriverAccount> driverAccountFromDb = driverAccountRepository.findById(id);
 
         if (driverAccountFromDb.isPresent()) {
-                return driverAccountFromDb.get();
+            cache.put("driverAccount:" + id, driverAccountFromDb.get());
+            return driverAccountFromDb.get();
         }
 
         throw new DriverAccountNotFoundException(DRIVER_ACCOUNT_NOT_FOUND_MESSAGE);
     }
 
     public DriverAccount getDriverAccountByDriverId(long driverId) {
+        DriverAccount driverAccount = cache.getIfPresent("driverAccountDriverId:" + driverId);
+
+        if (driverAccount != null) {
+            return driverAccount;
+        }
+
         Optional<DriverAccount> driverAccountFromDb = driverAccountRepository.findByDriverId(driverId);
 
         if (driverAccountFromDb.isPresent()) {
             if (!driverAccountFromDb.get().getDriver().isDeleted()) {
+                cache.put("driverAccountDriverId:" + driverId, driverAccountFromDb.get());
                 return driverAccountFromDb.get();
             }
 
@@ -76,6 +93,9 @@ public class DriverAccountService {
                 Float increasingBalance = updatingDriverAccount.getBalance()
                         + driverAccountFromDb.get().getBalance();
                 updatingDriverAccount.setBalance(increasingBalance);
+
+                cache.put("driverAccount:" + updatingDriverAccount.getId(), updatingDriverAccount);
+                cache.put("driverAccountDriverId:" + driverId, updatingDriverAccount);
 
                 return driverAccountRepository.save(updatingDriverAccount);
             }
@@ -101,6 +121,9 @@ public class DriverAccountService {
                         - updatingDriverAccount.getBalance();
                 if (increasingBalance >= 0) {
                     updatingDriverAccount.setBalance(increasingBalance);
+
+                    cache.put("driverAccount:" + updatingDriverAccount.getId(), updatingDriverAccount);
+                    cache.put("driverAccountDriverId:" + driverId, updatingDriverAccount);
 
                     return driverAccountRepository.save(updatingDriverAccount);
                 } else {

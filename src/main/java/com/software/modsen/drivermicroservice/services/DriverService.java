@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.software.modsen.drivermicroservice.exceptions.ErrorMessage.*;
@@ -28,6 +29,9 @@ public class DriverService {
     private DriverRepository driverRepository;
     private CarRepository carRepository;
     private DriverSubject driverSubject;
+    private RedisService redisService;
+
+    private static final int TTL = 10;
 
     public List<Driver> getAllDrivers(boolean includeDeleted, String name) {
         if (name != null) {
@@ -42,21 +46,36 @@ public class DriverService {
     }
 
     public Driver getDriverByName(String name) {
-        Optional<Driver> passengerFromDb = driverRepository.findByName(name);
+        Object cachedDriver = redisService.getFromCache("driver:" + name);
 
-        if (passengerFromDb.isPresent()) {
-            return passengerFromDb.get();
+        if (cachedDriver != null) {
+            return (Driver) cachedDriver;
+        }
+
+        Optional<Driver> driverFromDb = driverRepository.findByName(name);
+
+        if (driverFromDb.isPresent()) {
+            redisService.saveToCache("driver:" + name, driverFromDb.get(), TTL, TimeUnit.MINUTES);
+
+            return driverFromDb.get();
         }
 
         throw new DriverNotFoundException(DRIVER_NOT_FOUND_MESSAGE);
     }
 
-    @Retryable(retryFor = {PSQLException.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     @Transactional
     public Driver getDriverById(long id) {
+        Object cachedDriver = redisService.getFromCache("driver:" + id);
+
+        if (cachedDriver != null) {
+            return (Driver) cachedDriver;
+        }
+
         Optional<Driver> driverFromDb = driverRepository.findById(id);
 
         if (driverFromDb.isPresent()) {
+            redisService.saveToCache("driver:" + id, driverFromDb.get(), TTL, TimeUnit.MINUTES);
+
             return driverFromDb.get();
         }
 
@@ -68,10 +87,14 @@ public class DriverService {
         Optional<Car> carFromDb = carRepository.findById(carId);
 
         if (carFromDb.isPresent()) {
+
             newDriver.setCar(carFromDb.get());
             Driver driverFromDb = driverRepository.save(newDriver);
 
             driverSubject.notifyDriverObservers(driverFromDb.getId());
+
+            redisService.saveToCache("driver:" + driverFromDb.getId(), driverFromDb, TTL, TimeUnit.MINUTES);
+            redisService.saveToCache("driver:" + driverFromDb.getName(), driverFromDb, TTL, TimeUnit.MINUTES);
 
             return driverFromDb;
         }
@@ -88,9 +111,13 @@ public class DriverService {
             Optional<Driver> driverFromDb = driverRepository.findById(id);
 
             if (driverFromDb.isPresent()) {
+                redisService.invalidateCache("driver:" + id);
+
                 if (!driverFromDb.get().isDeleted()) {
                     updatingDriver.setId(id);
                     updatingDriver.setCar(carFromDb.get());
+
+                    redisService.saveToCache("driver:" + id, updatingDriver, TTL, TimeUnit.MINUTES);
 
                     return driverRepository.save(updatingDriver);
                 }
@@ -143,6 +170,9 @@ public class DriverService {
 
                 updatingDriver.setId(id);
 
+                redisService.invalidateCache("driver:" + id);
+                redisService.saveToCache("driver:" + id, updatingDriver, TTL, TimeUnit.MINUTES);
+
                 return driverRepository.save(updatingDriver);
             }
 
@@ -154,6 +184,8 @@ public class DriverService {
 
     @Transactional
     public Driver softDeleteDriverById(long id) {
+        redisService.invalidateCache("driver:" + id);
+
         Optional<Driver> driverFromDb = driverRepository.findById(id);
 
         return driverFromDb

@@ -26,20 +26,20 @@ public class ServiceAspect {
         log.warn("Test after!");
     }
 
-    @Around("beforeAndAfterAnyServices()")
-    public Object calculateMethodExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
-        long startTime = Instant.now().getNano();
-
-        log.info("Starting to run method {}.", joinPoint.getSignature().getName());
-
-        Object object = joinPoint.proceed();
-
-        long endTime = Instant.now().getNano();
-        long executionTimeInMillis = (endTime - startTime) / NANOS_IN_ONE_MILLISECOND;
-
-        log.info("Method {} worked in {} milliseconds", joinPoint.getSignature().getName(),
-                executionTimeInMillis);
-
-        return object;
-    }
+//    @Around("beforeAndAfterAnyServices()")
+//    public Object calculateMethodExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
+//        long startTime = Instant.now().getNano();
+//
+//        log.info("Starting to run method {}.", joinPoint.getSignature().getName());
+//
+//        Object object = joinPoint.proceed();
+//
+//        long endTime = Instant.now().getNano();
+//        long executionTimeInMillis = (endTime - startTime) / NANOS_IN_ONE_MILLISECOND;
+//
+//        log.info("Method {} worked in {} milliseconds", joinPoint.getSignature().getName(),
+//                executionTimeInMillis);
+//
+//        return object;
+//    }
 }
