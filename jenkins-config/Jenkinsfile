@@ -17,7 +17,7 @@ pipeline {
         stage('Linter') {
             steps {
                 echo "Linter"
-                sh 'mvn checkstyle:check'
+                sh 'mvn checkstyle:check -Dcheckstyle.consoleOutput=true'
             }
         }
 
