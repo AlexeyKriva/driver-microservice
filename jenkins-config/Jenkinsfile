@@ -31,11 +31,7 @@ pipeline {
         stage('Sonarqube') {
             steps {
                 echo "Sonarqube working..."
-                sh 'mvn verify sonar:sonar \
-                      -Dsonar.projectKey=driber-microservice \
-                      -Dsonar.projectName='driber-microservice' \
-                      -Dsonar.host.url=http://localhost:9000 \
-                      -Dsonar.token=sqp_6364922258b153c460fd68fecdd7b13f364ddbc4'
+                sh 'mvn verify sonar:sonar -Dsonar.projectKey=driber-microservice -Dsonar.projectName='driber-microservice' -Dsonar.host.url=http://localhost:9000 -Dsonar.token=sqp_6364922258b153c460fd68fecdd7b13f364ddbc4'
             }
         }
     }
