@@ -1,0 +1,9 @@
+stages:
+  - build
+
+build:
+  stage: build
+  tags:
+    - macos
+  script:
+    - echo "Building the project..."
