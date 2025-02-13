@@ -31,7 +31,7 @@ pipeline {
         stage('Sonarqube') {
             steps {
                 echo "Sonarqube working..."
-                curl -v http://localhost:9000
+                sh 'curl -v http://localhost:9000'
             }
         }
     }
